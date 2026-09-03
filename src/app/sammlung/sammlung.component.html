@@ -1,0 +1,102 @@
+@if (!geladen()) {
+  <p class="leer">Sammlung wird geladen &hellip;</p>
+} @else if (anzahl() === 0) {
+  <p class="leer">
+    Noch nichts gesammelt. Suche ein Kennzeichen und tippe im Ergebnis auf
+    <strong>„Gesehen“</strong>, um es hier abzulegen.
+  </p>
+} @else {
+  <section class="uebersicht">
+    <div class="zaehler">
+      <strong>{{ anzahl() }}</strong>
+      <span>von {{ gesamt() }} Unterscheidungszeichen</span>
+    </div>
+    <div class="balken" role="progressbar" [attr.aria-valuenow]="prozent()" aria-valuemin="0" aria-valuemax="100">
+      <div class="balken__fuellung" [style.width.%]="prozent()"></div>
+    </div>
+    <p class="prozent">{{ prozent() }} %</p>
+  </section>
+
+  <section class="laender">
+    <h2>Nach Bundesland</h2>
+    @for (l of proBundesland(); track l.land) {
+      <div class="land">
+        <button type="button" class="land__kopf" (click)="landAusklappen(l.land)"
+                [attr.aria-expanded]="ausgeklappt() === l.land">
+          <span class="land__name">{{ l.land }}</span>
+          <span class="land__zahl">{{ l.gesammelt }} / {{ l.gesamt }}</span>
+        </button>
+        <div class="balken balken--klein">
+          <div class="balken__fuellung" [style.width.%]="(l.gesammelt / l.gesamt) * 100"></div>
+        </div>
+        @if (ausgeklappt() === l.land) {
+          @if (l.fehlend.length) {
+            <p class="fehlend">
+              Noch offen:
+              @for (z of l.fehlend; track z) {
+                <span class="chip">{{ z }}</span>
+              }
+            </p>
+          } @else {
+            <p class="fehlend fehlend--fertig">Vollständig gesammelt.</p>
+          }
+        }
+      </div>
+    }
+  </section>
+
+  <section class="liste">
+    <h2>Zuletzt gesehen</h2>
+    @for (e of eintraege(); track e.z) {
+      <article class="eintrag">
+        <span class="eintrag__z">{{ e.z }}</span>
+        <div class="eintrag__text">
+          <span class="eintrag__ort">{{ e.ort }}</span>
+          <span class="eintrag__datum">{{ e.gesehenAm | date: 'dd.MM.yyyy' }}</span>
+          @if (bearbeiteteNotiz() === e.z) {
+            <div class="notiz-form">
+              <input
+                type="text"
+                placeholder="Notiz, z. B. „auf der A1 bei Osnabrück“"
+                [ngModel]="notizEntwurf()"
+                (ngModelChange)="notizEntwurf.set($event)"
+                (keyup.enter)="notizSpeichern(e.z)"
+              />
+              <button type="button" (click)="notizSpeichern(e.z)">Speichern</button>
+            </div>
+          } @else if (e.notiz) {
+            <button type="button" class="notiz" (click)="notizBearbeiten(e.z, e.notiz)">{{ e.notiz }}</button>
+          } @else {
+            <button type="button" class="notiz notiz--leer" (click)="notizBearbeiten(e.z, null)">
+              + Notiz
+            </button>
+          }
+        </div>
+        <button type="button" class="entfernen" (click)="entfernen(e.z)"
+                [attr.aria-label]="e.z + ' aus der Sammlung entfernen'">×</button>
+      </article>
+    }
+  </section>
+}
+
+<section class="verwaltung">
+  @if (meldung(); as m) {
+    <p class="meldung" role="status">{{ m }}</p>
+  }
+  <div class="aktionen">
+    <button type="button" (click)="sammlung.exportieren()" [disabled]="!geladen() || anzahl() === 0">
+      Exportieren
+    </button>
+    <label class="knopf-label">
+      Importieren
+      <input type="file" accept="application/json" (change)="importieren($event)" hidden />
+    </label>
+    <button type="button" class="gefahr" (click)="alleLoeschen()" [disabled]="!geladen() || anzahl() === 0">
+      Alles löschen
+    </button>
+  </div>
+  <p class="hinweis">
+    Die Sammlung wird nur in diesem Browser gespeichert. Für einen Gerätewechsel oder als
+    Sicherung nutze den Export.
+  </p>
+</section>

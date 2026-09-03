@@ -1,0 +1,242 @@
+:host {
+  display: block;
+  --rand: #d8dbe0;
+  --gedaempft: #5b6470;
+  --akzent: #003399;
+  --erfolg: #1a7f37;
+}
+
+h2 {
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.leer {
+  padding: 1.5rem;
+  border: 1px dashed var(--rand);
+  border-radius: 10px;
+  color: var(--gedaempft);
+  text-align: center;
+}
+
+.uebersicht {
+  margin-bottom: 2rem;
+}
+
+.zaehler {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+
+  strong { font-size: 2.4rem; line-height: 1; }
+  span { color: var(--gedaempft); }
+}
+
+.balken {
+  height: 10px;
+  border-radius: 999px;
+  background: #eef0f3;
+  overflow: hidden;
+
+  &--klein { height: 5px; }
+
+  &__fuellung {
+    height: 100%;
+    background: var(--erfolg);
+    border-radius: inherit;
+    transition: width 0.25s ease;
+  }
+}
+
+.prozent {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  color: var(--gedaempft);
+}
+
+.laender { margin-bottom: 2rem; }
+
+.land + .land { margin-top: 0.9rem; }
+
+.land__kopf {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0 0 0.3rem;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover .land__name { color: var(--akzent); }
+}
+
+.land__name { font-size: 0.95rem; }
+.land__zahl {
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 0.85rem;
+  color: var(--gedaempft);
+  white-space: nowrap;
+}
+
+.fehlend {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--gedaempft);
+  line-height: 2;
+
+  &--fertig { color: var(--erfolg); }
+}
+
+.chip {
+  display: inline-block;
+  margin: 0 0.25rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--rand);
+  border-radius: 999px;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-weight: 700;
+  color: #111;
+}
+
+.liste { margin-bottom: 2rem; }
+
+.eintrag {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rand);
+}
+
+.eintrag__z {
+  flex: 0 0 3.5rem;
+  padding: 0.25rem 0;
+  border: 2px solid #111;
+  border-radius: 4px;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.eintrag__text {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.eintrag__ort {
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eintrag__datum {
+  font-size: 0.8rem;
+  color: var(--gedaempft);
+}
+
+.notiz {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--akzent);
+  text-align: left;
+  cursor: pointer;
+
+  &--leer { color: var(--gedaempft); }
+  &:hover { text-decoration: underline; }
+}
+
+.notiz-form {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--rand);
+    border-radius: 6px;
+    font: inherit;
+    font-size: 0.85rem;
+  }
+  button {
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--akzent);
+    border-radius: 6px;
+    background: var(--akzent);
+    color: #fff;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+}
+
+.entfernen {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--gedaempft);
+  cursor: pointer;
+
+  &:hover { background: #fdf0ef; color: #93261c; }
+}
+
+.verwaltung {
+  border-top: 1px solid var(--rand);
+  padding-top: 1.25rem;
+}
+
+.aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  button, .knopf-label {
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--rand);
+    border-radius: 8px;
+    background: #fff;
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+
+    &:hover:not(:disabled) { border-color: var(--akzent); color: var(--akzent); }
+    &:disabled { opacity: 0.5; cursor: default; }
+  }
+
+  .gefahr:hover:not(:disabled) { border-color: #93261c; color: #93261c; }
+}
+
+.meldung {
+  margin: 0 0 0.9rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  background: #e6f4ea;
+  color: var(--erfolg);
+  font-size: 0.9rem;
+}
+
+.hinweis {
+  margin: 0.9rem 0 0;
+  font-size: 0.8rem;
+  color: var(--gedaempft);
+}

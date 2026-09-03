@@ -1,0 +1,13 @@
+<div class="schild" [attr.aria-label]="'Kennzeichen ' + uz() + ' ' + nummer()">
+  <div class="eu">
+    <div class="sterne" aria-hidden="true">
+      @for (stern of sterne; track $index) {
+        <span [style.transform]="'rotate(' + stern + 'deg) translateY(-11px)'">★</span>
+      }
+    </div>
+    <span class="land">D</span>
+  </div>
+  <span class="uz">{{ uz() }}</span>
+  <span class="plakette" aria-hidden="true"></span>
+  <span class="nummer">{{ nummer() }}</span>
+</div>

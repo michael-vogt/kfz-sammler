@@ -1,0 +1,175 @@
+<section class="suche">
+  <label class="feld" for="kennzeichen">
+    <span class="feld__label">Kennzeichen eingeben</span>
+    <div class="feld__zeile">
+      <input
+        id="kennzeichen"
+        type="text"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false"
+        placeholder="z. B. MS-AB 123"
+        [ngModel]="eingabe()"
+        (ngModelChange)="setzeEingabe($event)"
+        [disabled]="!bereit()"
+        aria-describedby="hinweis-eingabe"
+      />
+      @if (eingabe()) {
+        <button type="button" class="loeschen" (click)="leeren()" aria-label="Eingabe löschen">×</button>
+      }
+    </div>
+    <p id="hinweis-eingabe" class="hinweis">
+      Bindestrich und Leerzeichen sind optional – „msab123“ funktioniert genauso.
+    </p>
+  </label>
+
+  <div class="beispiele">
+    <span>Beispiele:</span>
+    @for (beispiel of beispiele; track beispiel) {
+      <button type="button" (click)="setzeEingabe(beispiel)">{{ beispiel }}</button>
+    }
+  </div>
+</section>
+
+@if (ladefehler(); as fehler) {
+  <p class="meldung meldung--fehler" role="alert">{{ fehler }}</p>
+} @else if (!bereit()) {
+  <p class="meldung">Daten werden geladen …</p>
+}
+
+@if (analyse(); as a) {
+  <div class="ergebnis">
+    @if (a.unterscheidungszeichen && (a.aktuell.length || a.sonder.length || a.auslaufend.length)) {
+      <app-kennzeichen-schild [uz]="a.unterscheidungszeichen" [nummer]="nummerText()" />
+    }
+
+    @if (a.fehler) {
+      <p class="meldung meldung--fehler" role="status">{{ a.fehler }}</p>
+      @if (a.vorschlaege.length) {
+        <p class="meldung">
+          Meintest du:
+          @for (v of a.vorschlaege; track v) {
+            <button type="button" class="chip" (click)="setzeEingabe(v)">{{ v }}</button>
+          }
+        </p>
+      }
+    }
+
+    <!-- Aktuell vergebene Zeichen -->
+    @for (k of a.aktuell; track k.ort) {
+      <article class="karte">
+        <header class="karte__kopf">
+          <h2>{{ k.ort }}</h2>
+          <div class="karte__aktionen">
+            <span class="badge badge--aktiv">aktuell vergeben</span>
+            <button
+              type="button"
+              class="sammeln"
+              [disabled]="!sammlung.geladen()"
+              [class.sammeln--aktiv]="sammlung.hatGesehen(k.z)"
+              [attr.aria-pressed]="sammlung.hatGesehen(k.z)"
+              (click)="gesehenUmschalten(k.z, k.ort)"
+            >
+              @if (sammlung.hatGesehen(k.z)) {
+                &#10003; Gesehen
+              } @else {
+                + Gesehen
+              }
+            </button>
+          </div>
+        </header>
+
+        @if (sammlung.sichtung(k.z); as s) {
+          <p class="gesammelt-seit">In deiner Sammlung seit {{ s.gesehenAm | date: 'dd.MM.yyyy' }}.</p>
+        }
+
+        <dl class="daten">
+          <dt>Unterscheidungszeichen</dt>
+          <dd class="mono">{{ k.z }}</dd>
+
+          <dt>Herleitung</dt>
+          <dd>
+            <span class="herleitung">
+              @for (seg of segmente(k.herleitung); track $index) {
+                <span [class.herleitung__treffer]="seg.hervorgehoben">{{ seg.text }}</span>
+              }
+            </span>
+          </dd>
+
+          <dt>Bundesland</dt>
+          <dd>{{ k.land }} <span class="iso mono">{{ k.landIso }}</span></dd>
+
+          @if (k.bemerkung) {
+            <dt>Bemerkung</dt>
+            <dd>{{ k.bemerkung }}</dd>
+          }
+
+          @if (k.fussnoten.length) {
+            <dt>Fußnoten</dt>
+            <dd>
+              @for (n of k.fussnoten; track n) {
+                <a class="fussnote-ref" [href]="'#fussnote-' + n">[{{ n }}]</a>
+              }
+            </dd>
+          }
+        </dl>
+      </article>
+    }
+
+    <!-- Sonderkennzeichen (Bund, Länder/Polizei, Diplomatisches Korps) -->
+    @for (s of a.sonder; track s.typ + s.bedeutung) {
+      <article class="karte karte--sonder">
+        <header class="karte__kopf">
+          <h2>Sonderkennzeichen</h2>
+          <span class="badge badge--sonder">{{ s.typ }}</span>
+        </header>
+        <dl class="daten">
+          <dt>Bedeutung</dt>
+          <dd>{{ s.bedeutung }}</dd>
+          @if (s.behoerde) {
+            <dt>Zulassungsbehörde</dt>
+            <dd>{{ s.behoerde }}</dd>
+          }
+        </dl>
+      </article>
+    }
+
+    <!-- Auslaufende Zeichen -->
+    @for (x of a.auslaufend; track x.bisher) {
+      <article class="karte karte--auslaufend">
+        <header class="karte__kopf">
+          <h2>{{ x.bisher }}</h2>
+          <span class="badge badge--auslaufend">auslaufend</span>
+        </header>
+        <dl class="daten">
+          <dt>Abwicklung durch</dt>
+          <dd>{{ x.abwicklung }}</dd>
+        </dl>
+      </article>
+    }
+
+    <!-- Erkennungsnummer -->
+    @if (a.erkennungsnummer; as e) {
+      <article class="karte karte--nummer">
+        <header class="karte__kopf"><h2>Erkennungsnummer</h2></header>
+        <ul class="liste">
+          @for (h of e.hinweise; track h) {
+            <li>{{ h }}</li>
+          }
+        </ul>
+      </article>
+    }
+
+    <!-- Fußnoten im Volltext -->
+    @if (a.fussnoten.length) {
+      <section class="fussnoten">
+        <h2>Fußnoten</h2>
+        @for (f of a.fussnoten; track f.nummer) {
+          <p class="fussnote" [id]="'fussnote-' + f.nummer">
+            <span class="fussnote__nummer">{{ f.nummer }}</span>{{ f.text }}
+          </p>
+        }
+      </section>
+    }
+  </div>
+}
