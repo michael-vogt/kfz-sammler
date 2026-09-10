@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { KennzeichenService } from '../kennzeichen/kennzeichen.service';
 import { SammlungService } from './sammlung.service';
+import { NavigationService } from '../navigation.service';
 
 interface LandFortschritt {
   land: string;
@@ -23,6 +24,11 @@ interface LandFortschritt {
 export class SammlungComponent {
   private readonly kennzeichen = inject(KennzeichenService);
   protected readonly sammlung = inject(SammlungService);
+  private readonly navigation = inject(NavigationService);
+
+  protected zeigeKennzeichen(z: string): void {
+    this.navigation.zeigeKennzeichen(z);
+  }
 
   protected readonly meldung = signal<string | null>(null);
   protected readonly bearbeiteteNotiz = signal<string | null>(null);

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { KennzeichenSucheComponent } from './kennzeichen/kennzeichen-suche/kennzeichen-suche.component';
 import { SammlungComponent } from './sammlung/sammlung.component';
 import { SammlungService } from './sammlung/sammlung.service';
+import { NavigationService } from './navigation.service';
 
 @Component({
   selector: 'app-root',
@@ -123,5 +124,6 @@ import { SammlungService } from './sammlung/sammlung.service';
 })
 export class App {
   protected readonly sammlung = inject(SammlungService);
-  protected readonly ansicht = signal<'suche' | 'sammlung'>('suche');
+  protected readonly navigation = inject(NavigationService);
+  protected readonly ansicht = this.navigation.ansicht;
 }

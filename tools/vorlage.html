@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#003399" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Kennzeichen" />
+  <title>KFZ-Kennzeichen erklärt</title>
+  <style>
+    :root {
+      --rand: #d8dbe0;
+      --gedaempft: #5b6470;
+      --akzent: #003399;
+      --erfolg: #1a7f37;
+      --mono: 'Courier New', ui-monospace, monospace;
+      color-scheme: light dark;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      padding: 1.25rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
+      max-width: 46rem;
+      margin-inline: auto;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      line-height: 1.5;
+      color: #16181d;
+      background: #fff;
+    }
+    h1 { font-size: 1.5rem; margin: 0 0 0.3rem; }
+    h2 { font-size: 1.1rem; margin: 0; }
+    .untertitel { margin: 0 0 1.25rem; color: var(--gedaempft); font-size: 0.9rem; }
+    button, input, label { font: inherit; }
+
+    /* Reiter */
+    .reiter { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--rand); margin-bottom: 1.5rem; }
+    .reiter button {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.6rem 1rem; border: 0; border-bottom: 2px solid transparent;
+      background: none; color: var(--gedaempft); cursor: pointer;
+    }
+    .reiter button[aria-selected="true"] { color: var(--akzent); border-bottom-color: var(--akzent); font-weight: 600; }
+    .zaehler { min-width: 1.4rem; padding: 0.05rem 0.4rem; border-radius: 999px; background: #eef0f3; font-size: 0.75rem; font-weight: 600; }
+    [hidden] { display: none !important; }
+
+    /* Eingabe */
+    .feld-label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+    .feld-zeile { position: relative; }
+    #eingabe {
+      width: 100%; padding: 0.9rem 2.6rem 0.9rem 1rem;
+      font-family: var(--mono); font-size: 1.4rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      border: 2px solid var(--rand); border-radius: 10px; background: #fff; color: inherit;
+    }
+    #eingabe:focus { outline: none; border-color: var(--akzent); box-shadow: 0 0 0 3px rgb(0 51 153 / 0.15); }
+    #eingabe::placeholder { color: #aab; font-weight: 400; letter-spacing: normal; text-transform: none; }
+    #loeschen {
+      position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+      width: 2rem; height: 2rem; border: 0; border-radius: 50%;
+      background: none; font-size: 1.4rem; color: var(--gedaempft); cursor: pointer;
+    }
+    .hinweis { margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--gedaempft); }
+    .beispiele { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 1rem 0 2rem; font-size: 0.85rem; color: var(--gedaempft); }
+    .beispiele button, .chip {
+      padding: 0.3rem 0.65rem; border: 1px solid var(--rand); border-radius: 999px;
+      background: #fff; font-family: var(--mono); font-weight: 700; color: inherit; cursor: pointer;
+    }
+
+    /* Schild */
+    .schild {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.25rem 0.75rem 0.25rem 0; margin-bottom: 1rem;
+      background: #fff; border: 3px solid #111; border-radius: 8px;
+      font-family: var(--mono); font-weight: 700; font-size: clamp(1.5rem, 7vw, 2.3rem);
+      letter-spacing: 0.05em; color: #111; overflow: hidden;
+    }
+    .schild .eu {
+      align-self: stretch; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 0.15em;
+      padding: 0.3em 0.4em; margin-right: 0.25rem; background: #039; color: #fff;
+    }
+    .schild .sterne { font-size: 0.3em; color: #fc0; letter-spacing: -0.1em; }
+    .schild .land { font-size: 0.45em; line-height: 1; }
+    .schild .plakette {
+      width: 0.5em; height: 0.5em; border-radius: 50%;
+      background: conic-gradient(#1a7f37 0 50%, #d4a017 0 100%); border: 1px solid #111;
+    }
+
+    /* Karten */
+    .karte { border: 1px solid var(--rand); border-left: 4px solid var(--akzent); border-radius: 10px; padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
+    .karte.sonder { border-left-color: #7a4fd1; }
+    .karte.auslaufend { border-left-color: #b0863a; }
+    .karte.nummer { border-left-color: var(--erfolg); }
+    .karte-kopf { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.9rem; }
+    .karte-aktionen { display: flex; align-items: center; gap: 0.6rem; }
+    .badge { padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+    .badge.aktiv { background: #e6f4ea; color: var(--erfolg); }
+    .badge.lila { background: #f0eafb; color: #5a35a8; }
+    .badge.gold { background: #fbf2e2; color: #8a6420; }
+    .sammeln {
+      padding: 0.35rem 0.8rem; border: 1px solid var(--rand); border-radius: 999px;
+      background: #fff; font-size: 0.8rem; font-weight: 600; color: var(--gedaempft);
+      white-space: nowrap; cursor: pointer;
+    }
+    .sammeln[aria-pressed="true"] { background: var(--erfolg); border-color: var(--erfolg); color: #fff; }
+    .gesammelt-seit { margin: -0.4rem 0 0.9rem; font-size: 0.8rem; color: var(--erfolg); }
+
+    dl { display: grid; grid-template-columns: minmax(8.5rem, auto) 1fr; gap: 0.5rem 1.25rem; margin: 0; }
+    dt { font-size: 0.85rem; font-weight: 600; color: var(--gedaempft); }
+    dd { margin: 0; }
+    @media (max-width: 34rem) {
+      dl { grid-template-columns: 1fr; gap: 0.15rem; }
+      dt { margin-top: 0.6rem; }
+    }
+    .mono { font-family: var(--mono); font-weight: 700; }
+    .iso { font-size: 0.8rem; color: var(--gedaempft); font-weight: 400; }
+    .herleitung { font-size: 1.05rem; color: var(--gedaempft); }
+    .herleitung b { color: var(--akzent); text-decoration: underline; text-underline-offset: 3px; }
+    .fussnote-ref { margin-right: 0.3rem; color: var(--akzent); text-decoration: none; font-weight: 600; }
+    ul.liste { margin: 0; padding-left: 1.1rem; }
+    ul.liste li + li { margin-top: 0.35rem; }
+
+    .meldung { padding: 0.9rem 1rem; border-radius: 10px; background: #f4f5f7; color: var(--gedaempft); }
+    .meldung.fehler { background: #fdf0ef; color: #93261c; }
+    .meldung.ok { background: #e6f4ea; color: var(--erfolg); }
+
+    .fussnoten { border-top: 1px solid var(--rand); padding-top: 1rem; }
+    .fussnote { display: flex; gap: 0.6rem; margin: 0 0 0.75rem; font-size: 0.9rem; color: var(--gedaempft); scroll-margin-top: 1rem; }
+    .fussnote-nr {
+      flex: 0 0 auto; width: 1.5rem; height: 1.5rem; display: grid; place-items: center;
+      border-radius: 50%; background: var(--akzent); color: #fff; font-size: 0.75rem; font-weight: 700;
+    }
+    .fussnote:target .fussnote-nr { background: #b0863a; }
+
+    /* Sammlung */
+    .zaehler-gross { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.6rem; }
+    .zaehler-gross strong { font-size: 2.4rem; line-height: 1; }
+    .zaehler-gross span { color: var(--gedaempft); }
+    .balken { height: 10px; border-radius: 999px; background: #eef0f3; overflow: hidden; }
+    .balken.klein { height: 5px; }
+    .balken i { display: block; height: 100%; background: var(--erfolg); transition: width 0.25s; }
+    .prozent { margin: 0.4rem 0 2rem; font-size: 0.85rem; color: var(--gedaempft); }
+    .land { margin-bottom: 0.9rem; }
+    .land-kopf {
+      display: flex; width: 100%; justify-content: space-between; align-items: baseline;
+      gap: 1rem; padding: 0 0 0.3rem; border: 0; background: none; text-align: left; cursor: pointer; color: inherit;
+    }
+    .land-zahl { font-family: var(--mono); font-size: 0.85rem; color: var(--gedaempft); white-space: nowrap; }
+    .fehlend { margin: 0.6rem 0 0; font-size: 0.85rem; color: var(--gedaempft); line-height: 2.2; }
+    .eintrag { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem 0; border-bottom: 1px solid var(--rand); }
+    .eintrag-z {
+      flex: 0 0 3.5rem; padding: 0.4rem 0; border: 2px solid #111; border-radius: 4px;
+      background: #fff; color: #111; font: inherit; font-family: var(--mono); font-weight: 700;
+      font-size: 1.1rem; text-align: center; cursor: pointer;
+    }
+    .eintrag-text { flex: 1 1 auto; min-width: 0; }
+    .eintrag-ort { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .eintrag-datum { font-size: 0.8rem; color: var(--gedaempft); }
+    .notiz { display: block; padding: 0; border: 0; background: none; font-size: 0.85rem; color: var(--akzent); text-align: left; cursor: pointer; }
+    .notiz.leer { color: var(--gedaempft); }
+    .entfernen { flex: 0 0 auto; width: 2rem; height: 2rem; border: 0; border-radius: 50%; background: none; font-size: 1.3rem; color: var(--gedaempft); cursor: pointer; }
+    .leer-hinweis { padding: 1.5rem; border: 1px dashed var(--rand); border-radius: 10px; color: var(--gedaempft); text-align: center; }
+    .verwaltung { border-top: 1px solid var(--rand); padding-top: 1.25rem; margin-top: 2rem; }
+    .aktionen { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .aktionen button, .aktionen label {
+      padding: 0.55rem 0.9rem; border: 1px solid var(--rand); border-radius: 8px;
+      background: #fff; font-size: 0.9rem; color: inherit; cursor: pointer;
+    }
+    .aktionen button:disabled { opacity: 0.5; }
+    .gefahr { color: #93261c; }
+
+    footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rand); font-size: 0.8rem; color: var(--gedaempft); }
+    footer a { color: var(--akzent); }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #14161a; color: #e8eaed; }
+      :root { --rand: #2d3138; --gedaempft: #9aa3ae; --akzent: #7aa2ff; }
+      #eingabe, .karte, .beispiele button, .chip, .aktionen button, .aktionen label { background: #1c1f25; color: inherit; }
+      .zaehler, .balken { background: #262a31; }
+      .meldung { background: #1c1f25; }
+      .schild, .eintrag-z { background: #fff; color: #111; }
+      .badge.aktiv { background: #16321f; } .badge.lila { background: #241a38; } .badge.gold { background: #33270f; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>KFZ-Kennzeichen erklärt</h1>
+<p class="untertitel">Gib ein deutsches Kennzeichen ein und erfahre, wofür es steht.</p>
+
+<nav class="reiter" role="tablist">
+  <button role="tab" id="tab-suche" aria-selected="true">Suche</button>
+  <button role="tab" id="tab-sammlung" aria-selected="false">
+    Sammlung <span class="zaehler" id="tab-zaehler">0</span>
+  </button>
+</nav>
+
+<section id="ansicht-suche">
+  <label class="feld-label" for="eingabe">Kennzeichen eingeben</label>
+  <div class="feld-zeile">
+    <input id="eingabe" type="text" inputmode="text" autocomplete="off" autocapitalize="characters"
+           autocorrect="off" spellcheck="false" placeholder="z. B. MS-AB 123" enterkeyhint="search" />
+    <button id="loeschen" type="button" aria-label="Eingabe löschen" hidden>&times;</button>
+  </div>
+  <p class="hinweis">Bindestrich und Leerzeichen sind optional – „msab123“ funktioniert genauso.</p>
+  <div class="beispiele" id="beispiele"><span>Beispiele:</span></div>
+  <div id="ergebnis"></div>
+</section>
+
+<section id="ansicht-sammlung" hidden></section>
+
+<footer>
+  Datengrundlage:
+  <a href="https://github.com/openpotato/kfz-kennzeichen" target="_blank" rel="noopener">openpotato/kfz-kennzeichen</a>
+  – Unterscheidungszeichen und Fußnoten stammen vom Kraftfahrt-Bundesamt.
+  Die Sammlung wird ausschließlich lokal in diesem Browser gespeichert.
+</footer>
+
+<script>
+  "use strict";
+
+  /* ---------- Daten (beim Bauen eingebettet) ---------- */
+  const DATEN = /*__DATEN__*/{};
+
+  /* ---------- Hilfsfunktionen ---------- */
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  const BUCHSTABE = "A-ZÄÖÜ";
+  const MONATE = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+
+  const BEKANNT = new Set([
+    ...DATEN.aktuell.map((k) => k.z),
+    ...DATEN.auslaufend.map((k) => k.z),
+    ...DATEN.sonder.map((k) => k.z),
+  ]);
+
+  function normalisiere(eingabe) {
+    return eingabe.toUpperCase().replace(/[\u2010-\u2015\u2212_]/g, "-").replace(/\s+/g, " ").trim();
+  }
+
+  function herleitungHtml(herleitung) {
+    let html = "", offen = false;
+    for (const z of herleitung) {
+      const gross = z !== z.toLowerCase();
+      if (gross !== offen) { html += gross ? "<b>" : "</b>"; offen = gross; }
+      html += esc(z);
+    }
+    return html + (offen ? "</b>" : "");
+  }
+
+  function trenne(normalisiert) {
+    const mitTrenner = normalisiert.match(new RegExp("^([" + BUCHSTABE + "0-9]{1,3})\\s*-\\s*(.*)$"));
+    if (mitTrenner) return { uz: mitTrenner[1], rest: mitTrenner[2].trim() };
+
+    const kompakt = normalisiert.replace(/\s+/g, "");
+    for (let n = Math.min(3, kompakt.length); n >= 1; n--) {
+      const kandidat = kompakt.slice(0, n);
+      if (BEKANNT.has(kandidat)) return { uz: kandidat, rest: kompakt.slice(n) };
+    }
+    const vermutung = kompakt.match(new RegExp("^[" + BUCHSTABE + "0-9]{1,3}"));
+    return vermutung ? { uz: vermutung[0], rest: kompakt.slice(vermutung[0].length) } : null;
+  }
+
+  function parseErkennungsnummer(rest) {
+    const roh = rest.replace(/\s+/g, " ").trim();
+    if (!roh) return null;
+    // Bis zu 4 Ziffern regulär; Bundes- und Diplomatenkennzeichen nutzen bis zu 6.
+    const t = roh.match(new RegExp(
+      "^([" + BUCHSTABE + "]{0,2})[\\s-]*(\\d{1,6})\\s*([EH])?(?:\\s*(\\d{1,2})\\s*-\\s*(\\d{1,2}))?$"));
+    if (!t) return null;
+
+    const [, buchstaben, ziffern, suffix, sVon, sBis] = t;
+    const hinweise = [];
+
+    hinweise.push(buchstaben
+      ? `Erkennungsnummer: ${buchstaben.length} Buchstabe${buchstaben.length > 1 ? "n" : ""} und ${ziffern.length} Ziffer${ziffern.length > 1 ? "n" : ""} – frei vergeben bzw. als Wunschkennzeichen reservierbar.`
+      : `Erkennungsnummer ohne Buchstabenteil (${ziffern.length}-stellig).`);
+
+    if (suffix === "E") hinweise.push("Das nachgestellte „E“ kennzeichnet ein Elektrofahrzeug (§ 9a FZV / EmoG).");
+    if (suffix === "H") hinweise.push("Das nachgestellte „H“ steht für ein historisches Fahrzeug (Oldtimer, mindestens 30 Jahre alt).");
+
+    if (sVon && sBis) {
+      const von = +sVon, bis = +sBis;
+      if (von >= 1 && von <= 12 && bis >= 1 && bis <= 12) {
+        hinweise.push(`Saisonkennzeichen: gültig von ${MONATE[von - 1]} bis einschließlich ${MONATE[bis - 1]}.`);
+      }
+    }
+
+    if (!buchstaben && ziffern.length >= 4) {
+      const kreis = {
+        "03": "Kurzzeitkennzeichen: nur für Probe- und Überführungsfahrten, maximal fünf Tage gültig.",
+        "04": "Kurzzeitkennzeichen: nur für Probe- und Überführungsfahrten, maximal fünf Tage gültig.",
+        "06": "Rotes Händlerkennzeichen: wiederverwendbar, für Prüfungs-, Probe- und Überführungsfahrten.",
+        "07": "Rotes Oldtimerkennzeichen: für Probe- und Überführungsfahrten mit Oldtimern.",
+      }[ziffern.slice(0, 2)];
+      if (kreis) hinweise.push(kreis);
+    }
+
+    return { buchstaben, ziffern, suffix: suffix || null, hinweise };
+  }
+
+  function distanz(a, b) {
+    const zeile = Array.from({ length: b.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) {
+      let vorher = zeile[0];
+      zeile[0] = i;
+      for (let j = 1; j <= b.length; j++) {
+        const temp = zeile[j];
+        zeile[j] = Math.min(zeile[j] + 1, zeile[j - 1] + 1, vorher + (a[i - 1] === b[j - 1] ? 0 : 1));
+        vorher = temp;
+      }
+    }
+    return zeile[b.length];
+  }
+
+  function analysiere(eingabe) {
+    const normalisiert = normalisiere(eingabe);
+    if (!normalisiert) return null;
+
+    const teile = trenne(normalisiert);
+    if (!teile) return { fehler: "Die Eingabe enthält kein gültiges Unterscheidungszeichen.", vorschlaege: [] };
+
+    const { uz, rest } = teile;
+    const aktuell = DATEN.aktuell.filter((k) => k.z === uz);
+    const auslaufend = DATEN.auslaufend.filter((k) => k.z === uz);
+    const sonder = DATEN.sonder.filter((k) => k.z === uz);
+    const gefunden = aktuell.length + auslaufend.length + sonder.length > 0;
+
+    const nummern = [...new Set(aktuell.flatMap((k) => k.fussnoten))].sort((a, b) => a - b);
+
+    return {
+      uz, aktuell, auslaufend, sonder,
+      erkennungsnummer: parseErkennungsnummer(rest),
+      fussnoten: nummern.filter((n) => DATEN.fussnoten[n]).map((n) => ({ nummer: n, text: DATEN.fussnoten[n] })),
+      fehler: gefunden ? null : `„${uz}“ ist kein bekanntes Unterscheidungszeichen.`,
+      vorschlaege: gefunden ? [] : [...BEKANNT]
+        .map((z) => ({ z, d: distanz(uz, z) }))
+        .filter((e) => e.d <= 1)
+        .sort((a, b) => a.d - b.d || a.z.localeCompare(b.z, "de"))
+        .slice(0, 6).map((e) => e.z),
+    };
+  }
+
+  /* ---------- Sammlung ---------- */
+  const SCHLUESSEL = "kfz-sammlung.v1";
+
+  const Sammlung = {
+    daten: (() => {
+      try {
+        const roh = localStorage.getItem(SCHLUESSEL);
+        const d = roh ? JSON.parse(roh) : {};
+        return Object.fromEntries(Object.entries(d).filter(([z, s]) => typeof z === "string" && typeof s?.gesehenAm === "string"));
+      } catch { return {}; }
+    })(),
+
+    speichern() {
+      try { localStorage.setItem(SCHLUESSEL, JSON.stringify(this.daten)); }
+      catch { /* Speicher nicht verfügbar – Sammlung gilt nur für diese Sitzung. */ }
+    },
+
+    anzahl() { return Object.keys(this.daten).length; },
+    hat(z) { return z in this.daten; },
+    sichtung(z) { return this.daten[z] || null; },
+
+    umschalten(z, ort) {
+      if (this.hat(z)) delete this.daten[z];
+      else this.daten[z] = { z, ort: ort || null, notiz: null, gesehenAm: new Date().toISOString() };
+      this.speichern();
+    },
+
+    notizSetzen(z, notiz) {
+      if (this.daten[z]) { this.daten[z].notiz = notiz.trim() || null; this.speichern(); }
+    },
+
+    entfernen(z) { delete this.daten[z]; this.speichern(); },
+    leeren() { this.daten = {}; this.speichern(); },
+
+    alle() { return Object.values(this.daten).sort((a, b) => b.gesehenAm.localeCompare(a.gesehenAm)); },
+
+    exportieren() {
+      const url = URL.createObjectURL(new Blob([JSON.stringify(this.alle(), null, 2)], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `kfz-sammlung-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    },
+
+    async importieren(datei) {
+      const liste = JSON.parse(await datei.text());
+      if (!Array.isArray(liste)) throw new Error("Unerwartetes Format");
+      let neue = 0;
+      for (const e of liste) {
+        if (typeof e?.z !== "string" || typeof e?.gesehenAm !== "string") continue;
+        const alt = this.daten[e.z];
+        if (!alt) neue++;
+        // Bei Dubletten gewinnt die ältere Sichtung.
+        if (!alt || e.gesehenAm < alt.gesehenAm) {
+          this.daten[e.z] = { z: e.z, gesehenAm: e.gesehenAm, ort: e.ort ?? null, notiz: e.notiz ?? null };
+        }
+      }
+      this.speichern();
+      return neue;
+    },
+  };
+
+  const datum = (iso) => new Date(iso).toLocaleDateString("de-DE");
+
+  /* ---------- Ansicht: Suche ---------- */
+  const SCHILD_STERNE = "★★★★★★★★★★★★";
+
+  function schildHtml(uz, nummer) {
+    return `<div class="schild"><div class="eu">
+    <span class="sterne">${SCHILD_STERNE.slice(0, 6)}</span><span class="land">D</span>
+  </div><span>${esc(uz)}</span><span class="plakette"></span><span>${esc(nummer)}</span></div>`;
+  }
+
+  function zeigeErgebnis() {
+    const eingabe = $("#eingabe").value;
+    $("#loeschen").hidden = !eingabe;
+    const ziel = $("#ergebnis");
+    const a = analysiere(eingabe);
+
+    if (!a) { ziel.innerHTML = ""; return; }
+
+    let html = "";
+    const treffer = (a.aktuell?.length || 0) + (a.sonder?.length || 0) + (a.auslaufend?.length || 0);
+
+    if (treffer) {
+      const e = a.erkennungsnummer;
+      const nummer = e ? [e.buchstaben, e.ziffern + (e.suffix || "")].filter(Boolean).join(" ") : "";
+      html += schildHtml(a.uz, nummer);
+    }
+
+    if (a.fehler) {
+      html += `<p class="meldung fehler">${esc(a.fehler)}</p>`;
+      if (a.vorschlaege.length) {
+        html += `<p class="meldung">Meintest du: ` +
+          a.vorschlaege.map((v) => `<button class="chip" data-uebernehmen="${esc(v)}">${esc(v)}</button>`).join(" ") +
+          `</p>`;
+      }
+    }
+
+    for (const k of a.aktuell || []) {
+      const gesehen = Sammlung.hat(k.z);
+      const s = Sammlung.sichtung(k.z);
+      html += `<article class="karte">
+      <div class="karte-kopf">
+        <h2>${esc(k.ort)}</h2>
+        <div class="karte-aktionen">
+          <span class="badge aktiv">aktuell vergeben</span>
+          <button class="sammeln" aria-pressed="${gesehen}" data-sammeln="${esc(k.z)}" data-ort="${esc(k.ort)}">
+            ${gesehen ? "&#10003; Gesehen" : "+ Gesehen"}
+          </button>
+        </div>
+      </div>
+      ${s ? `<p class="gesammelt-seit">In deiner Sammlung seit ${datum(s.gesehenAm)}.</p>` : ""}
+      <dl>
+        <dt>Unterscheidungszeichen</dt><dd class="mono">${esc(k.z)}</dd>
+        <dt>Herleitung</dt><dd class="herleitung">${herleitungHtml(k.herleitung)}</dd>
+        <dt>Bundesland</dt><dd>${esc(k.land)} <span class="iso mono">${esc(k.landIso)}</span></dd>
+        ${k.bemerkung ? `<dt>Bemerkung</dt><dd>${esc(k.bemerkung)}</dd>` : ""}
+        ${k.fussnoten.length ? `<dt>Fußnoten</dt><dd>${k.fussnoten.map((n) => `<a class="fussnote-ref" href="#fussnote-${n}">[${n}]</a>`).join("")}</dd>` : ""}
+      </dl>
+    </article>`;
+    }
+
+    for (const s of a.sonder || []) {
+      html += `<article class="karte sonder">
+      <div class="karte-kopf"><h2>Sonderkennzeichen</h2><span class="badge lila">${esc(s.typ)}</span></div>
+      <dl><dt>Bedeutung</dt><dd>${esc(s.bedeutung)}</dd>
+      ${s.behoerde ? `<dt>Zulassungsbehörde</dt><dd>${esc(s.behoerde)}</dd>` : ""}</dl>
+    </article>`;
+    }
+
+    for (const x of a.auslaufend || []) {
+      html += `<article class="karte auslaufend">
+      <div class="karte-kopf"><h2>${esc(x.bisher)}</h2><span class="badge gold">auslaufend</span></div>
+      <dl><dt>Abwicklung durch</dt><dd>${esc(x.abwicklung)}</dd></dl>
+    </article>`;
+    }
+
+    if (a.erkennungsnummer) {
+      html += `<article class="karte nummer">
+      <div class="karte-kopf"><h2>Erkennungsnummer</h2></div>
+      <ul class="liste">${a.erkennungsnummer.hinweise.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>
+    </article>`;
+    }
+
+    if (a.fussnoten?.length) {
+      html += `<section class="fussnoten"><h2>Fußnoten</h2>` +
+        a.fussnoten.map((f) => `<p class="fussnote" id="fussnote-${f.nummer}">
+        <span class="fussnote-nr">${f.nummer}</span>${esc(f.text)}</p>`).join("") +
+        `</section>`;
+    }
+
+    ziel.innerHTML = html;
+  }
+
+  /* ---------- Ansicht: Sammlung ---------- */
+  let ausgeklappt = null;
+  let bearbeitet = null;
+  let meldung = null;
+
+  function zeigeSammlung() {
+    const ziel = $("#ansicht-sammlung");
+    const anzahl = Sammlung.anzahl();
+    const gesamt = new Set(DATEN.aktuell.map((k) => k.z)).size;
+    const prozent = gesamt ? Math.round((anzahl / gesamt) * 1000) / 10 : 0;
+    let html = "";
+
+    if (!anzahl) {
+      html += `<p class="leer-hinweis">Noch nichts gesammelt. Suche ein Kennzeichen und tippe im
+      Ergebnis auf <strong>„Gesehen“</strong>, um es hier abzulegen.</p>`;
+    } else {
+      html += `<div class="zaehler-gross"><strong>${anzahl}</strong><span>von ${gesamt} Unterscheidungszeichen</span></div>
+      <div class="balken"><i style="width:${prozent}%"></i></div>
+      <p class="prozent">${String(prozent).replace(".", ",")} %</p>`;
+
+      // Fortschritt je Bundesland
+      const gruppen = new Map();
+      for (const k of DATEN.aktuell) {
+        const liste = gruppen.get(k.land) || [];
+        if (!liste.includes(k.z)) liste.push(k.z);
+        gruppen.set(k.land, liste);
+      }
+      const laender = [...gruppen.entries()].map(([land, zeichen]) => ({
+        land, gesamt: zeichen.length,
+        gesammelt: zeichen.filter((z) => Sammlung.hat(z)).length,
+        fehlend: zeichen.filter((z) => !Sammlung.hat(z)).sort((a, b) => a.localeCompare(b, "de")),
+      })).sort((a, b) => b.gesammelt / b.gesamt - a.gesammelt / a.gesamt || a.land.localeCompare(b.land, "de"));
+
+      html += `<h2 style="margin-bottom:.75rem">Nach Bundesland</h2>`;
+      for (const l of laender) {
+        const offen = ausgeklappt === l.land;
+        html += `<div class="land">
+        <button class="land-kopf" data-land="${esc(l.land)}" aria-expanded="${offen}">
+          <span>${esc(l.land)}</span><span class="land-zahl">${l.gesammelt} / ${l.gesamt}</span>
+        </button>
+        <div class="balken klein"><i style="width:${(l.gesammelt / l.gesamt) * 100}%"></i></div>
+        ${offen ? (l.fehlend.length
+          ? `<p class="fehlend">Noch offen: ${l.fehlend.map((z) => `<button class="chip" data-uebernehmen="${esc(z)}">${esc(z)}</button>`).join(" ")}</p>`
+          : `<p class="fehlend" style="color:var(--erfolg)">Vollständig gesammelt.</p>`) : ""}
+      </div>`;
+      }
+
+      // Liste der Sichtungen
+      const orte = new Map(DATEN.aktuell.map((k) => [k.z, k.ort]));
+      html += `<h2 style="margin:2rem 0 .75rem">Zuletzt gesehen</h2>`;
+      for (const e of Sammlung.alle()) {
+        const ort = orte.get(e.z) || e.ort || "";
+        html += `<article class="eintrag">
+        <button class="eintrag-z" data-uebernehmen="${esc(e.z)}">${esc(e.z)}</button>
+        <div class="eintrag-text">
+          <span class="eintrag-ort">${esc(ort)}</span>
+          <span class="eintrag-datum">${datum(e.gesehenAm)}</span>
+          ${bearbeitet === e.z
+          ? `<div style="display:flex;gap:.4rem;margin-top:.3rem">
+                 <input id="notiz-eingabe" type="text" value="${esc(e.notiz || "")}"
+                        placeholder="Notiz, z. B. „auf der A1“"
+                        style="flex:1;min-width:0;padding:.35rem .5rem;border:1px solid var(--rand);border-radius:6px;font-size:.85rem" />
+                 <button data-notiz-speichern="${esc(e.z)}"
+                         style="padding:.35rem .7rem;border:0;border-radius:6px;background:var(--akzent);color:#fff;font-size:.85rem">OK</button>
+               </div>`
+          : `<button class="notiz${e.notiz ? "" : " leer"}" data-notiz="${esc(e.z)}">${e.notiz ? esc(e.notiz) : "+ Notiz"}</button>`}
+        </div>
+        <button class="entfernen" data-entfernen="${esc(e.z)}" aria-label="${esc(e.z)} entfernen">&times;</button>
+      </article>`;
+      }
+    }
+
+    html += `<section class="verwaltung">
+    ${meldung ? `<p class="meldung ok" style="margin-bottom:.9rem">${esc(meldung)}</p>` : ""}
+    <div class="aktionen">
+      <button id="export" ${anzahl ? "" : "disabled"}>Exportieren</button>
+      <label>Importieren<input id="import" type="file" accept="application/json" hidden /></label>
+      <button id="alles-loeschen" class="gefahr" ${anzahl ? "" : "disabled"}>Alles löschen</button>
+    </div>
+    <p class="hinweis">Nur in diesem Browser gespeichert. Für Gerätewechsel oder Sicherung den Export nutzen.</p>
+  </section>`;
+
+    ziel.innerHTML = html;
+    $("#tab-zaehler").textContent = anzahl;
+    if (bearbeitet) $("#notiz-eingabe")?.focus();
+  }
+
+  /* ---------- Ereignisse ---------- */
+  function wechsle(zu) {
+    $("#ansicht-suche").hidden = zu !== "suche";
+    $("#ansicht-sammlung").hidden = zu !== "sammlung";
+    $("#tab-suche").setAttribute("aria-selected", zu === "suche");
+    $("#tab-sammlung").setAttribute("aria-selected", zu === "sammlung");
+    if (zu === "sammlung") { meldung = null; zeigeSammlung(); } else { zeigeErgebnis(); }
+  }
+
+  $("#tab-suche").onclick = () => wechsle("suche");
+  $("#tab-sammlung").onclick = () => wechsle("sammlung");
+
+  $("#eingabe").addEventListener("input", zeigeErgebnis);
+  $("#eingabe").addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.blur(); });
+  $("#loeschen").onclick = () => { $("#eingabe").value = ""; $("#eingabe").focus(); zeigeErgebnis(); };
+
+  for (const b of ["MS-AB 123", "B-MW 4711E", "HH 1234 H", "GAP-XY 42", "THW-91234"]) {
+    const knopf = document.createElement("button");
+    knopf.textContent = b;
+    knopf.dataset.uebernehmen = b;
+    $("#beispiele").append(knopf);
+  }
+
+  // Zentrale Klickbehandlung für die dynamisch erzeugten Inhalte.
+  document.addEventListener("click", async (ev) => {
+    const el = ev.target.closest("[data-uebernehmen],[data-sammeln],[data-land],[data-notiz],[data-notiz-speichern],[data-entfernen],#export,#alles-loeschen");
+    if (!el) return;
+
+    if (el.dataset.uebernehmen !== undefined) {
+      $("#eingabe").value = el.dataset.uebernehmen;
+      wechsle("suche");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (el.dataset.sammeln) {
+      Sammlung.umschalten(el.dataset.sammeln, el.dataset.ort);
+      zeigeErgebnis();
+      $("#tab-zaehler").textContent = Sammlung.anzahl();
+    } else if (el.dataset.land) {
+      ausgeklappt = ausgeklappt === el.dataset.land ? null : el.dataset.land;
+      zeigeSammlung();
+    } else if (el.dataset.notiz) {
+      bearbeitet = el.dataset.notiz;
+      zeigeSammlung();
+    } else if (el.dataset.notizSpeichern) {
+      Sammlung.notizSetzen(el.dataset.notizSpeichern, $("#notiz-eingabe").value);
+      bearbeitet = null;
+      zeigeSammlung();
+    } else if (el.dataset.entfernen) {
+      Sammlung.entfernen(el.dataset.entfernen);
+      zeigeSammlung();
+    } else if (el.id === "export") {
+      Sammlung.exportieren();
+    } else if (el.id === "alles-loeschen") {
+      if (confirm(`Wirklich alle ${Sammlung.anzahl()} gesammelten Zeichen löschen?`)) {
+        Sammlung.leeren();
+        meldung = "Sammlung geleert.";
+        zeigeSammlung();
+      }
+    }
+  });
+
+  document.addEventListener("change", async (ev) => {
+    if (ev.target.id !== "import") return;
+    const datei = ev.target.files?.[0];
+    if (!datei) return;
+    try {
+      const neue = await Sammlung.importieren(datei);
+      meldung = neue ? `${neue} neue Zeichen importiert.` : "Keine neuen Zeichen in der Datei.";
+    } catch {
+      meldung = "Die Datei konnte nicht gelesen werden.";
+    }
+    ev.target.value = "";
+    zeigeSammlung();
+  });
+
+  $("#tab-zaehler").textContent = Sammlung.anzahl();
+</script>
+</body>
+</html>

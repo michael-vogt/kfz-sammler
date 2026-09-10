@@ -1,11 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule } from '@angular/forms';
 
 import { KennzeichenSchildComponent } from '../kennzeichen-schild/kennzeichen-schild.component';
 import { KennzeichenService } from '../kennzeichen.service';
 import { herleitungSegmente } from '../kennzeichen.parser';
 import { SammlungService } from '../../sammlung/sammlung.service';
+import { NavigationService } from '../../navigation.service';
 
 @Component({
   selector: 'app-kennzeichen-suche',
@@ -17,6 +25,17 @@ import { SammlungService } from '../../sammlung/sammlung.service';
 export class KennzeichenSucheComponent {
   private readonly service = inject(KennzeichenService);
   protected readonly sammlung = inject(SammlungService);
+  private readonly navigation = inject(NavigationService);
+
+  constructor() {
+    effect(() => {
+      const auswahl = this.navigation.vorauswahl();
+      if (!auswahl) return;
+      this.eingabe.set(auswahl.z);
+      this.navigation.vorauswahlVerbraucht();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
 
   protected readonly eingabe = signal('');
   protected readonly bereit = this.service.bereit;
