@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-export type Ansicht = 'suche' | 'sammlung';
+export type Ansicht = 'suche' | 'sammlung' | 'karte';
 
 /**
  * Verbindet Suche und Sammlung: welche Ansicht sichtbar ist und welches

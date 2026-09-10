@@ -102,6 +102,16 @@ export class SammlungComponent {
     }
   }
 
+  protected async exportieren(): Promise<void> {
+    this.meldung.set(null);
+    try {
+      const erfolgreich = await this.sammlung.exportieren();
+      if (erfolgreich) this.meldung.set('Sammlung exportiert.')
+    } catch {
+      this.meldung.set('Der Export ist fehlgeschlagen.');
+    }
+  }
+
   protected async importieren(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const datei = input.files?.[0];

@@ -1,11 +1,40 @@
-import { analysiere, herleitungSegmente, normalisiere, parseErkennungsnummer } from './kennzeichen.parser';
+import {
+  analysiere,
+  herleitungSegmente,
+  normalisiere,
+  parseErkennungsnummer,
+} from './kennzeichen.parser';
 import type { Datenbestand } from './kennzeichen.parser';
 
 const daten: Datenbestand = {
   aktuell: [
-    { z: 'MS', ort: 'Münster, Stadt', herleitung: 'MünSter', land: 'Nordrhein-Westfalen', landIso: 'DE-NW', fussnoten: [], bemerkung: null },
-    { z: 'AB', ort: 'Aschaffenburg', herleitung: 'AschaffenBurg', land: 'Bayern', landIso: 'DE-BY', fussnoten: [1], bemerkung: null },
-    { z: 'B', ort: 'Berlin', herleitung: 'Berlin', land: 'Berlin', landIso: 'DE-BE', fussnoten: [], bemerkung: null },
+    {
+      z: 'MS',
+      ort: 'Münster, Stadt',
+      herleitung: 'MünSter',
+      land: 'Nordrhein-Westfalen',
+      landIso: 'DE-NW',
+      fussnoten: [],
+      bemerkung: null,
+    },
+    {
+      z: 'AB',
+      ort: 'Aschaffenburg',
+      herleitung: 'AschaffenBurg',
+      land: 'Bayern',
+      landIso: 'DE-BY',
+      fussnoten: [1],
+      bemerkung: null,
+    },
+    {
+      z: 'B',
+      ort: 'Berlin',
+      herleitung: 'Berlin',
+      land: 'Berlin',
+      landIso: 'DE-BE',
+      fussnoten: [],
+      bemerkung: null,
+    },
   ],
   auslaufend: [{ z: 'AL', bisher: 'Altena', abwicklung: 'Märkischer Kreis' }],
   sonder: [{ z: 'THW', typ: 'Bund', bedeutung: 'Technisches Hilfswerk', behoerde: null }],
@@ -29,6 +58,16 @@ describe('analysiere', () => {
 
   it('bevorzugt das längere Zeichen gegenüber dem kürzeren', () => {
     expect(analysiere('AB1234', daten).unterscheidungszeichen).toBe('AB');
+  });
+
+  it('zeigt eine mehrfach genannte Fußnote nur einmal', () => {
+    // Notfallnetz, falls die Quelldaten wieder Dubletten enthalten
+    // (dort hängt die Marke an jedem Ort einer Aufzählung).
+    const mitDubletten: Datenbestand = {
+      ...daten,
+      aktuell: [{ ...daten.aktuell[1], fussnoten: [1, 1, 1] }],
+    };
+    expect(analysiere('AB-C 1', mitDubletten).fussnoten).toHaveLength(1);
   });
 
   it('liefert die Fußnoten im Volltext', () => {
@@ -67,7 +106,10 @@ describe('parseErkennungsnummer', () => {
 
 describe('herleitungSegmente', () => {
   it('hebt die namensgebenden Buchstaben hervor', () => {
-    expect(herleitungSegmente('MünSter').filter((s) => s.hervorgehoben).map((s) => s.text))
-      .toEqual(['M', 'S']);
+    expect(
+      herleitungSegmente('MünSter')
+        .filter((s) => s.hervorgehoben)
+        .map((s) => s.text),
+    ).toEqual(['M', 'S']);
   });
 });

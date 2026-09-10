@@ -1,0 +1,142 @@
+:host {
+  display: block;
+  --rand: #d8dbe0;
+  --gedaempft: #5b6470;
+  --akzent: #003399;
+  --voll: #1a7f37;
+  --teilweise: #a8cdb5;
+  --leer: #e9ecf1;
+  --ohne: #f4f5f7;
+}
+
+.stand {
+  margin: 0 0 1rem;
+  color: var(--gedaempft);
+
+  strong { font-size: 1.6rem; color: inherit; }
+}
+
+.karte {
+  display: block;
+  width: 100%;
+  max-width: 32rem;
+  height: auto;
+  margin: 0 auto 1rem;
+}
+
+.kreis {
+  stroke: #fff;
+  stroke-width: 1;
+  cursor: pointer;
+  transition: fill 0.2s ease;
+
+  &--voll { fill: var(--voll); }
+  &--teilweise { fill: var(--teilweise); }
+  &--leer { fill: var(--leer); }
+  &--ohne { fill: var(--ohne); }
+
+  &--aktiv {
+    stroke: var(--akzent);
+    stroke-width: 2.5;
+    // Ausgewählte Fläche über die Nachbarn heben, sonst schneiden deren
+    // Ränder den Umriss an.
+    paint-order: stroke;
+  }
+}
+
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.1rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+  color: var(--gedaempft);
+
+  li { display: flex; align-items: center; gap: 0.4rem; }
+}
+
+.muster {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 1px solid var(--rand);
+  border-radius: 3px;
+
+  &--voll { background: var(--voll); }
+  &--teilweise { background: var(--teilweise); }
+  &--leer { background: var(--leer); }
+}
+
+.detail {
+  border: 1px solid var(--rand);
+  border-left: 4px solid var(--akzent);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.detail__kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  h2 { margin: 0; font-size: 1.15rem; min-width: 0; }
+}
+
+.detail__land {
+  font-size: 0.8rem;
+  color: var(--gedaempft);
+  white-space: nowrap;
+}
+
+.detail__stand {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--gedaempft);
+}
+
+.zeichenliste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--rand);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-weight: 700;
+  color: #111;
+  cursor: pointer;
+
+  &--gesehen {
+    background: var(--voll);
+    border-color: var(--voll);
+    color: #fff;
+  }
+
+  &:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+}
+
+.meldung {
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  background: #f4f5f7;
+  color: var(--gedaempft);
+
+  &--fehler { background: #fdf0ef; color: #93261c; }
+}
+
+.hinweis {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--gedaempft);
+  text-align: center;
+}

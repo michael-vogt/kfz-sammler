@@ -1,6 +1,7 @@
 import { Injectable, InjectionToken, computed, inject, signal } from '@angular/core';
 
 import { LocalStorageSpeicher, Speicher, speicherErzeugen } from './speicher';
+import { Ausgabe, ausgabeErzeugen } from './ausgabe';
 
 /** Eine einzelne Sichtung eines Unterscheidungszeichens. */
 export interface Sichtung {
@@ -20,6 +21,12 @@ export const SPEICHER = new InjectionToken<Promise<Speicher>>('Speicher', {
   factory: () => speicherErzeugen(),
 });
 
+/** Überschreibbar in Tests, analog zu SPEICHER. */
+export const AUSGABE = new InjectionToken<Promise<Ausgabe>>('Ausgabe', {
+  providedIn: 'root',
+  factory: () => ausgabeErzeugen(),
+});
+
 /** Filtert offensichtlich kaputte Einträge heraus. */
 function bereinigen(daten: unknown): Record<string, Sichtung> {
   if (!daten || typeof daten !== 'object') return {};
@@ -33,6 +40,7 @@ function bereinigen(daten: unknown): Record<string, Sichtung> {
 @Injectable({ providedIn: 'root' })
 export class SammlungService {
   private readonly speicherPromise = inject(SPEICHER);
+  private readonly ausgabePromise = inject(AUSGABE);
 
   private readonly sichtungen = signal<Record<string, Sichtung>>({});
   private readonly istGeladen = signal(false);
@@ -136,15 +144,19 @@ export class SammlungService {
     this.persistieren();
   }
 
-  /** Sammlung als JSON-Datei herunterladen. */
-  exportieren(): void {
-    const inhalt = JSON.stringify(this.alle(), null, 2);
-    const url = URL.createObjectURL(new Blob([inhalt], { type: 'application/json' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `kfz-sammlung-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+  /**
+   * Gibt die Sammlung als JSON-Datei aus - im Browser als Download,
+   * unter Android über das Teilen-Menü.
+   * Gibt false zurück, wenn der Nutzer abgebrochen hat.
+   */
+  async exportieren(): Promise<boolean> {
+    const ausgabe = await this.ausgabePromise;
+    const dateiname = `kfz-sammlung-${new Date().toISOString().slice(0, 10)}.json`;
+    return ausgabe.bereitstellen(
+      dateiname,
+      JSON.stringify(this.alle(), null, 2),
+      'KFZ-Sammlung',
+    );
   }
 
   /**

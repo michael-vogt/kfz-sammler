@@ -1,0 +1,64 @@
+@if (fehler(); as f) {
+  <p class="meldung meldung--fehler" role="alert">{{ f }}</p>
+} @else if (!bereit()) {
+  <p class="meldung">Karte wird geladen &hellip;</p>
+} @else {
+  <p class="stand">
+    <strong>{{ vollstaendig() }}</strong> von {{ gesamtKreise() }} Kreisen vollständig,
+    {{ angefangen() }} angefangen.
+  </p>
+
+  <svg
+    class="karte"
+    [attr.viewBox]="viewBox()"
+    role="img"
+    aria-label="Karte der deutschen Landkreise, eingefärbt nach Sammelstand"
+  >
+    @for (k of kreise(); track k.id) {
+      <path
+        [attr.d]="k.d"
+        [attr.class]="'kreis kreis--' + stufe(k) + (ausgewaehlt() === k.id ? ' kreis--aktiv' : '')"
+        [attr.aria-label]="k.name"
+        (click)="auswaehlen(k.id)"
+      >
+        <title>{{ k.name }}{{ k.zeichen.length ? ' – ' + k.zeichen.join(', ') : '' }}</title>
+      </path>
+    }
+  </svg>
+
+  <ul class="legende">
+    <li><span class="muster muster--voll"></span>vollständig</li>
+    <li><span class="muster muster--teilweise"></span>teilweise</li>
+    <li><span class="muster muster--leer"></span>noch nichts</li>
+  </ul>
+
+  @if (detail(); as k) {
+    <article class="detail">
+      <header class="detail__kopf">
+        <h2>{{ k.name }}</h2>
+        <span class="detail__land">{{ k.land }}</span>
+      </header>
+
+      @if (k.zeichen.length) {
+        <p class="detail__stand">{{ k.gesammelt }} von {{ k.zeichen.length }} gesammelt</p>
+        <div class="zeichenliste">
+          @for (z of k.zeichen; track z) {
+            <button
+              type="button"
+              class="chip"
+              [class.chip--gesehen]="sammlung.hatGesehen(z)"
+              (click)="zeigeKennzeichen(z)"
+              [attr.aria-label]="z + ' – Informationen anzeigen'"
+            >{{ z }}</button>
+          }
+        </div>
+      } @else {
+        <p class="detail__stand">
+          Für diesen Kreis führen die Daten kein eigenes Unterscheidungszeichen.
+        </p>
+      }
+    </article>
+  } @else {
+    <p class="hinweis">Tippe auf einen Kreis, um seine Unterscheidungszeichen zu sehen.</p>
+  }
+}

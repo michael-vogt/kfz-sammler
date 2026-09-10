@@ -33,7 +33,10 @@ const write = (f, data) => {
   console.log(`${f}: ${Array.isArray(data) ? data.length : Object.keys(data).length} Einträge`);
 };
 
-const fussnoten = (s) => s ? s.split(/[;,\s]+/).filter(Boolean).map(Number) : [];
+// Die Quelle hängt die Fussnotenmarke an jeden Ort einer Aufzählung, sodass
+// dieselbe Nummer mehrfach in der Spalte steht.
+const fussnoten = (s) =>
+  s ? [...new Set(s.split(/[;,\s]+/).filter(Boolean).map(Number))].sort((a, b) => a - b) : [];
 
 write('kennzeichen.json', read('kennzeichen.csv').map(r => ({
   z: r['Unterscheidungszeichen'],

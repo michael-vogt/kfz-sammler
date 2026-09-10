@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
-import { SPEICHER, SammlungService } from './sammlung.service';
+import { AUSGABE, SPEICHER, SammlungService } from './sammlung.service';
+import { Ausgabe } from './ausgabe';
 import { Speicher } from './speicher';
 
 /** Speicher im Arbeitsspeicher – kein localStorage, keine Capacitor-Abhängigkeit. */
@@ -17,12 +18,28 @@ class FakeSpeicher implements Speicher {
   }
 }
 
+/** Merkt sich, was ausgegeben werden sollte, statt eine Datei zu erzeugen. */
+class FakeAusgabe implements Ausgabe {
+  aufrufe: { dateiname: string; inhalt: string }[] = [];
+  antwort = true;
+  async bereitstellen(dateiname: string, inhalt: string) {
+    this.aufrufe.push({ dateiname, inhalt });
+    return this.antwort;
+  }
+}
+
 const SCHLUESSEL = 'kfz-sammlung.v1';
 
 /** Legt einen Service über dem gegebenen Speicher an und wartet auf das Laden. */
-async function serviceMit(speicher: Speicher): Promise<SammlungService> {
+async function serviceMit(
+  speicher: Speicher,
+  ausgabe: Ausgabe = new FakeAusgabe(),
+): Promise<SammlungService> {
   TestBed.configureTestingModule({
-    providers: [{ provide: SPEICHER, useValue: Promise.resolve(speicher) }],
+    providers: [
+      { provide: SPEICHER, useValue: Promise.resolve(speicher) },
+      { provide: AUSGABE, useValue: Promise.resolve(ausgabe) },
+    ],
   });
   const dienst = TestBed.inject(SammlungService);
   // Auf den Ladevorgang im Konstruktor warten.
@@ -118,6 +135,23 @@ describe('SammlungService', () => {
     expect(neue).toBe(1);
     expect(dienst.sichtung('MS')?.notiz).toBe('alt');
     expect(dienst.anzahl()).toBe(2);
+  });
+
+  it('exportiert die Sammlung mit datiertem Dateinamen', async () => {
+    const ausgabe = new FakeAusgabe();
+    const dienst = await serviceMit(new FakeSpeicher(), ausgabe);
+    dienst.umschalten('MS', 'Münster, Stadt');
+    await dienst.exportieren();
+    expect(ausgabe.aufrufe).toHaveLength(1);
+    expect(ausgabe.aufrufe[0].dateiname).toMatch(/^kfz-sammlung-\d{4}-\d{2}-\d{2}\.json$/);
+    expect(JSON.parse(ausgabe.aufrufe[0].inhalt)[0].z).toBe('MS');
+  });
+
+  it('meldet einen Abbruch durch den Nutzer', async () => {
+    const ausgabe = new FakeAusgabe();
+    ausgabe.antwort = false;
+    const dienst = await serviceMit(new FakeSpeicher(), ausgabe);
+    expect(await dienst.exportieren()).toBe(false);
   });
 
   it('ignoriert kaputte Einträge beim Import', async () => {

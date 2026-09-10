@@ -43,7 +43,8 @@ Der Konverter liest die vier CSV-Dateien und erzeugt `kennzeichen.json`,
 
 Jeder Treffer lässt sich über „Gesehen“ in eine persönliche Sammlung aufnehmen. Der Reiter
 *Sammlung* zeigt den Fortschritt insgesamt und je Bundesland (inklusive der noch fehlenden
-Zeichen), erlaubt eine Notiz je Sichtung und bietet Export und Import als JSON.
+Zeichen), erlaubt eine Notiz je Sichtung und bietet Export und Import als JSON. Der Export läuft im
+Browser als Download, unter Android über das Teilen-Menü (`sammlung/ausgabe.ts`).
 
 Gespeichert wird unter dem Schlüssel `kfz-sammlung.v1`, im Browser via `localStorage`, in der
 Android-App via `@capacitor/preferences`. Die Auswahl trifft `speicherErzeugen()` in
@@ -73,6 +74,38 @@ node tools/bauen.mjs   # liest public/data/*.json und tools/vorlage.html
 
 Die Logik ist eine Portierung von `kennzeichen.parser.ts` nach Vanilla-JS. Änderungen an der
 Analyse müssen daher an beiden Stellen gepflegt werden.
+
+## Karte
+
+Der Reiter *Karte* zeigt alle 402 Landkreise, eingefärbt nach Sammelstand: vollständig,
+teilweise, noch nichts. Ein Tippen auf einen Kreis listet seine Unterscheidungszeichen; ein
+Tippen auf ein Zeichen springt zur Suche.
+
+Die Geometrie stammt aus
+[m-ad/geofeatures-ags-germany](https://github.com/m-ad/geofeatures-ags-germany) (GADM-Daten).
+`tools/kreise_bauen.py` projiziert und vereinfacht sie beim Bauen zu fertigen SVG-Pfaden, damit
+die App keine Geo-Bibliothek braucht:
+
+```bash
+python3 tools/kreise_bauen.py pfad/zu/counties.json public/data/kennzeichen.json public/data/kreise.json
+```
+
+Ergebnis: rund 320 KB, geladen erst beim ersten Öffnen des Reiters.
+
+### Grenzen der Zuordnung
+
+Die Kennzeichendaten enthalten keinen amtlichen Kreisschlüssel, nur Klartextnamen. Die
+Zuordnung läuft deshalb über Namensabgleich plus eine Korrekturtabelle (`KORREKTUREN` im
+Skript) für Schreibvarianten und Gebietsreformen. Aktuell sind alle 714 Zeichen zugeordnet.
+
+Drei Einschränkungen bleiben:
+
+- Wo Stadt und Landkreis denselben Namen tragen (23 Fälle, etwa München oder Rostock), landen
+  die Zeichen auf beiden Flächen. Optisch fällt das nicht auf, fachlich ist es unscharf.
+- Die Geometrie bildet den Stand vor einigen Kreisreformen ab; *Osterode am Harz* und
+  *Eisenach* existieren dort noch als eigene Kreise, führen aber keine Zeichen mehr.
+- Ändert sich `kennzeichen.csv`, muss die Korrekturtabelle geprüft werden. Das Skript meldet
+  am Ende, welche Zeichen ohne Zuordnung geblieben sind.
 
 ## Android-App
 

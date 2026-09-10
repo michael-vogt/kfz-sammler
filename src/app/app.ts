@@ -1,13 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { KennzeichenSucheComponent } from './kennzeichen/kennzeichen-suche/kennzeichen-suche.component';
 import { SammlungComponent } from './sammlung/sammlung.component';
 import { SammlungService } from './sammlung/sammlung.service';
 import { NavigationService } from './navigation.service';
+import { PlattformService } from './platform.service';
+import { KarteComponent } from './karte/karte.component';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [KennzeichenSucheComponent, SammlungComponent],
+  imports: [KennzeichenSucheComponent, SammlungComponent, KarteComponent],
   template: `
     <main class="huelle">
       <header class="kopf">
@@ -37,12 +39,23 @@ import { NavigationService } from './navigation.service';
             <span class="zaehler">{{ n }}</span>
           }
         </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="ansicht() === 'karte'"
+          [class.aktiv]="ansicht() === 'karte'"
+          (click)="ansicht.set('karte')"
+        >
+          Karte
+        </button>
       </nav>
 
       @if (ansicht() === 'suche') {
         <app-kennzeichen-suche />
-      } @else {
+      } @else if (ansicht() === 'sammlung') {
         <app-sammlung />
+      } @else {
+        <app-karte />
       }
 
       <footer class="fuss">
@@ -122,8 +135,23 @@ import { NavigationService } from './navigation.service';
     }
   `,
 })
-export class App {
+export class App implements OnInit {
   protected readonly sammlung = inject(SammlungService);
   protected readonly navigation = inject(NavigationService);
   protected readonly ansicht = this.navigation.ansicht;
+
+  private readonly plattform = inject(PlattformService);
+
+  ngOnInit() {
+    void this.plattform.initialisieren();
+
+    // Aus Sammlung und Karte zurück zur Suche; auf der Suche schliesst die App.
+    this.plattform.zurueckTaste(() => {
+      if (this.ansicht() !== 'suche') {
+        this.ansicht.set('suche');
+        return false;
+      }
+      return true;
+    })
+  }
 }

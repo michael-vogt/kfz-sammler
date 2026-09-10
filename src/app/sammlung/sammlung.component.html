@@ -88,7 +88,7 @@
     <p class="meldung" role="status">{{ m }}</p>
   }
   <div class="aktionen">
-    <button type="button" (click)="sammlung.exportieren()" [disabled]="!geladen() || anzahl() === 0">
+    <button type="button" (click)="exportieren()" [disabled]="!geladen() || anzahl() === 0">
       Exportieren
     </button>
     <label class="knopf-label">

@@ -26,6 +26,7 @@ export PATH="$PATH:$ANDROID_HOME/platform-tools"
 ```bash
 npm install @capacitor/core @capacitor/cli
 npm install @capacitor/app @capacitor/status-bar @capacitor/splash-screen @capacitor/preferences
+npm install @capacitor/filesystem @capacitor/share
 npx cap init "KFZ-Kennzeichen" de.example.kfzkennzeichen --web-dir dist/kfz-kennzeichen/browser
 ```
 
@@ -125,6 +126,17 @@ Sammlung automatisch übernommen. Der alte Eintrag bleibt dabei bestehen, damit 
 zurück zum Web-Build nichts verliert.
 
 Eine Deinstallation löscht die Daten weiterhin vollständig – dagegen hilft nur der Export.
+
+### Export und Import
+
+Ein Blob-Download funktioniert in der WebView nicht, weil dort kein Download-Manager
+angebunden ist. Der Export schreibt die Datei deshalb nach `Directory.Cache` und öffnet das
+System-Teilen-Menü (`@capacitor/share`); der Nutzer wählt dort Drive, Mail oder die
+Dateien-App. Welche Variante greift, entscheidet `ausgabeErzeugen()` in
+`src/app/sammlung/ausgabe.ts`.
+
+Der Import über `<input type="file">` funktioniert dagegen unverändert – die WebView reicht
+das an den Android-Dateiwähler weiter.
 
 ## Bekannte Stolpersteine
 
