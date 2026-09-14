@@ -16,17 +16,55 @@
   strong { font-size: 1.6rem; color: inherit; }
 }
 
+.buehne {
+  position: relative;
+  max-width: 32rem;
+  margin: 0 auto 1rem;
+}
+
 .karte {
   display: block;
   width: 100%;
-  max-width: 32rem;
   height: auto;
-  margin: 0 auto 1rem;
+  // Ohne das scrollt der Browser die Seite, statt die Karte zu verschieben.
+  touch-action: none;
+  cursor: grab;
+  overflow: hidden;
+
+  &:active { cursor: grabbing; }
+}
+
+.steuerung {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  button {
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid var(--rand);
+    border-radius: 8px;
+    background: rgb(255 255 255 / 0.92);
+    font: inherit;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: #111;
+    cursor: pointer;
+
+    &:hover { border-color: var(--akzent); color: var(--akzent); }
+  }
+
+  .zurueck { font-size: 1.1rem; }
 }
 
 .kreis {
   stroke: #fff;
   stroke-width: 1;
+  // Randbreite soll beim Zoomen konstant bleiben.
+  vector-effect: non-scaling-stroke;
   cursor: pointer;
   transition: fill 0.2s ease;
 
@@ -37,7 +75,7 @@
 
   &--aktiv {
     stroke: var(--akzent);
-    stroke-width: 2.5;
+    stroke-width: 2;
     // Ausgewählte Fläche über die Nachbarn heben, sonst schneiden deren
     // Ränder den Umriss an.
     paint-order: stroke;

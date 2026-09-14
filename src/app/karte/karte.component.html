@@ -8,23 +8,44 @@
     {{ angefangen() }} angefangen.
   </p>
 
-  <svg
-    class="karte"
-    [attr.viewBox]="viewBox()"
-    role="img"
-    aria-label="Karte der deutschen Landkreise, eingefärbt nach Sammelstand"
-  >
-    @for (k of kreise(); track k.id) {
-      <path
-        [attr.d]="k.d"
-        [attr.class]="'kreis kreis--' + stufe(k) + (ausgewaehlt() === k.id ? ' kreis--aktiv' : '')"
-        [attr.aria-label]="k.name"
-        (click)="auswaehlen(k.id)"
-      >
-        <title>{{ k.name }}{{ k.zeichen.length ? ' – ' + k.zeichen.join(', ') : '' }}</title>
-      </path>
-    }
-  </svg>
+  <div class="buehne">
+    <svg
+      #svg
+      class="karte"
+      [attr.viewBox]="viewBox()"
+      role="img"
+      aria-label="Karte der deutschen Landkreise, eingefärbt nach Sammelstand"
+      (pointerdown)="beiZeigerStart($event)"
+      (pointermove)="beiZeigerBewegung($event)"
+      (pointerup)="beiZeigerEnde($event)"
+      (pointercancel)="beiZeigerEnde($event)"
+      (pointerleave)="beiZeigerEnde($event)"
+      (wheel)="beiRad($event)"
+    >
+      <g [attr.transform]="transform()">
+        @for (k of kreise(); track k.id) {
+          <path
+            [attr.d]="k.d"
+            [attr.class]="'kreis kreis--' + stufe(k) + (ausgewaehlt() === k.id ? ' kreis--aktiv' : '')"
+            [attr.aria-label]="k.name"
+            (click)="auswaehlen(k.id)"
+          >
+            <title>{{ k.name }}{{ k.zeichen.length ? ' – ' + k.zeichen.join(', ') : '' }}</title>
+          </path>
+        }
+      </g>
+    </svg>
+
+    <div class="steuerung">
+      <button type="button" (click)="zoomStufe(1.6)" aria-label="Vergrößern">+</button>
+      <button type="button" (click)="zoomStufe(1 / 1.6)" aria-label="Verkleinern">&minus;</button>
+      @if (vergroessert()) {
+        <button type="button" class="zurueck" (click)="zuruecksetzen()" aria-label="Ansicht zurücksetzen">
+          &#8634;
+        </button>
+      }
+    </div>
+  </div>
 
   <ul class="legende">
     <li><span class="muster muster--voll"></span>vollständig</li>
@@ -59,6 +80,6 @@
       }
     </article>
   } @else {
-    <p class="hinweis">Tippe auf einen Kreis, um seine Unterscheidungszeichen zu sehen.</p>
+    <p class="hinweis">Tippe auf einen Kreis für seine Unterscheidungszeichen. Zwei Finger zum Zoomen, wischen zum Verschieben.</p>
   }
 }

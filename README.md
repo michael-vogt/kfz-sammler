@@ -92,6 +92,11 @@ python3 tools/kreise_bauen.py pfad/zu/counties.json public/data/kennzeichen.json
 
 Ergebnis: rund 320 KB, geladen erst beim ersten Öffnen des Reiters.
 
+Die Karte lässt sich zoomen und verschieben: zwei Finger beziehungsweise Mausrad zum Zoomen,
+wischen oder ziehen zum Verschieben, dazu Knöpfe für Tastatur- und Mausbedienung. Der Zustand
+liegt in `karte/kartenblick.ts`; gerechnet wird in Nutzereinheiten der viewBox, sodass der
+Punkt unter dem Finger beim Zoomen ortsfest bleibt.
+
 ### Grenzen der Zuordnung
 
 Die Kennzeichendaten enthalten keinen amtlichen Kreisschlüssel, nur Klartextnamen. Die
