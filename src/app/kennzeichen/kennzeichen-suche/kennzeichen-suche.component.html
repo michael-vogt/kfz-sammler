@@ -139,8 +139,21 @@
       <article class="karte karte--auslaufend">
         <header class="karte__kopf">
           <h2>{{ x.bisher }}</h2>
-          <span class="badge badge--auslaufend">auslaufend</span>
+          <div class="karte__aktionen">
+            <span class="badge badge--auslaufend">auslaufend</span>
+            <button type="button" class="sammeln"
+                    [disabled]="!sammlung.geladen()"
+                    [class.sammeln--aktiv]="sammlung.hatGesehen(x.z)"
+                    [attr.aria-pressed]="sammlung.hatGesehen(x.z)"
+                    (click)="gesehenUmschalten(x.z, x.bisher)">
+              @if (sammlung.hatGesehen(x.z)) { ✓ Gesehen } @else { + Gesehen }
+            </button>
+          </div>
         </header>
+
+        @if (sammlung.sichtung(x.z); as s) {
+          <p class="gesammelt-seit">In deiner Sammlung seit {{ s.gesehenAm | date: 'dd.MM.yyyy' }}.</p>
+        }
         <dl class="daten">
           <dt>Abwicklung durch</dt>
           <dd>{{ x.abwicklung }}</dd>

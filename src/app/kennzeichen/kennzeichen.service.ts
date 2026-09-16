@@ -34,6 +34,11 @@ export class KennzeichenService {
   /** Vollständige Datensätze – Basis für die Sammlungsstatistik. */
   readonly alleKennzeichen = computed<Kennzeichen[]>(() => this.daten()?.aktuell ?? []);
 
+  /** Auslaufende Zeichen – Grundlage für den eigenen Sammlungsabschnitt. */
+  readonly alleAuslaufend = computed<AuslaufendesKennzeichen[]>(
+    () => this.daten()?.auslaufend ?? [],
+  );
+
   constructor() {
     this.laden();
   }

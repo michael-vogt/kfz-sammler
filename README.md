@@ -43,7 +43,14 @@ Der Konverter liest die vier CSV-Dateien und erzeugt `kennzeichen.json`,
 
 Jeder Treffer lässt sich über „Gesehen“ in eine persönliche Sammlung aufnehmen. Der Reiter
 *Sammlung* zeigt den Fortschritt insgesamt und je Bundesland (inklusive der noch fehlenden
-Zeichen), erlaubt eine Notiz je Sichtung und bietet Export und Import als JSON. Der Export läuft im
+Zeichen), erlaubt eine Notiz je Sichtung und bietet Export und Import als JSON.
+
+Auslaufende Zeichen lassen sich ebenfalls sammeln. Sie stehen in einem eigenen Abschnitt, weil
+ihnen in den Quelldaten das Bundesland fehlt und sie den Stand bei den 714 aktuellen Zeichen
+nicht verwässern sollen. Fünf Zeichen (BEL, BR, HZ, L, LK) stehen in beiden Listen; sie zählen
+als ein Eintrag und erscheinen in beiden Statistiken – am Schild selbst sind sie nicht zu
+unterscheiden. Auf der Karte tauchen auslaufende Zeichen nicht auf, da `kreise.json` nur aus
+den aktuellen Zeichen gebaut wird. Der Export läuft im
 Browser als Download, unter Android über das Teilen-Menü (`sammlung/ausgabe.ts`).
 
 Gespeichert wird unter dem Schlüssel `kfz-sammlung.v1`, im Browser via `localStorage`, in der

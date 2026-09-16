@@ -155,6 +155,10 @@
     }
     .eintrag-text { flex: 1 1 auto; min-width: 0; }
     .eintrag-ort { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .marke {
+      margin-left: 0.4rem; padding: 0.05rem 0.4rem; border-radius: 999px;
+      background: #fbf2e2; font-size: 0.7rem; font-weight: 600; color: #8a6420; white-space: nowrap;
+    }
     .eintrag-datum { font-size: 0.8rem; color: var(--gedaempft); }
     .notiz { display: block; padding: 0; border: 0; background: none; font-size: 0.85rem; color: var(--akzent); text-align: left; cursor: pointer; }
     .notiz.leer { color: var(--gedaempft); }
@@ -476,8 +480,19 @@
     }
 
     for (const x of a.auslaufend || []) {
+      const gesehen = Sammlung.hat(x.z);
+      const s = Sammlung.sichtung(x.z);
       html += `<article class="karte auslaufend">
-      <div class="karte-kopf"><h2>${esc(x.bisher)}</h2><span class="badge gold">auslaufend</span></div>
+      <div class="karte-kopf">
+        <h2>${esc(x.bisher)}</h2>
+        <div class="karte-aktionen">
+          <span class="badge gold">auslaufend</span>
+          <button class="sammeln" aria-pressed="${gesehen}" data-sammeln="${esc(x.z)}" data-ort="${esc(x.bisher)}">
+            ${gesehen ? "&#10003; Gesehen" : "+ Gesehen"}
+          </button>
+        </div>
+      </div>
+      ${s ? `<p class="gesammelt-seit">In deiner Sammlung seit ${datum(s.gesehenAm)}.</p>` : ""}
       <dl><dt>Abwicklung durch</dt><dd>${esc(x.abwicklung)}</dd></dl>
     </article>`;
     }
@@ -507,15 +522,22 @@
   function zeigeSammlung() {
     const ziel = $("#ansicht-sammlung");
     const anzahl = Sammlung.anzahl();
-    const gesamt = new Set(DATEN.aktuell.map((k) => k.z)).size;
-    const prozent = gesamt ? Math.round((anzahl / gesamt) * 1000) / 10 : 0;
+    const aktuelleZeichen = new Set(DATEN.aktuell.map((k) => k.z));
+    const gesamt = aktuelleZeichen.size;
+    const aktuellGesammelt = [...aktuelleZeichen].filter((z) => Sammlung.hat(z)).length;
+    const prozent = gesamt ? Math.round((aktuellGesammelt / gesamt) * 1000) / 10 : 0;
+
+    // Auslaufende Zeichen getrennt: ihnen fehlt das Bundesland.
+    const auslZeichen = [...new Set(DATEN.auslaufend.map((k) => k.z))];
+    const auslGesammelt = auslZeichen.filter((z) => Sammlung.hat(z)).length;
+    const auslFehlend = auslZeichen.filter((z) => !Sammlung.hat(z)).sort((a, b) => a.localeCompare(b, "de"));
     let html = "";
 
     if (!anzahl) {
       html += `<p class="leer-hinweis">Noch nichts gesammelt. Suche ein Kennzeichen und tippe im
       Ergebnis auf <strong>„Gesehen“</strong>, um es hier abzulegen.</p>`;
     } else {
-      html += `<div class="zaehler-gross"><strong>${anzahl}</strong><span>von ${gesamt} Unterscheidungszeichen</span></div>
+      html += `<div class="zaehler-gross"><strong>${aktuellGesammelt}</strong><span>von ${gesamt} aktuellen Unterscheidungszeichen</span></div>
       <div class="balken"><i style="width:${prozent}%"></i></div>
       <p class="prozent">${String(prozent).replace(".", ",")} %</p>`;
 
@@ -548,13 +570,27 @@
 
       // Liste der Sichtungen
       const orte = new Map(DATEN.aktuell.map((k) => [k.z, k.ort]));
+      const frueher = new Map(DATEN.auslaufend.map((k) => [k.z, k.bisher]));
+      if (auslZeichen.length) {
+        html += `<h2 style="margin:2rem 0 .4rem">Auslaufende Zeichen</h2>
+        <p class="fehlend" style="line-height:1.5;margin:0 0 .6rem">
+          ${auslGesammelt} von ${auslZeichen.length} gesammelt – Zeichen, die nicht mehr neu
+          vergeben werden, aber noch unterwegs sind.
+        </p>
+        <div class="balken klein"><i style="width:${(auslGesammelt / auslZeichen.length) * 100}%"></i></div>`;
+        html += auslFehlend.length
+          ? `<p class="fehlend">Noch offen: ${auslFehlend.map((z) => `<button class="chip" data-uebernehmen="${esc(z)}">${esc(z)}</button>`).join(" ")}</p>`
+          : `<p class="fehlend" style="color:var(--erfolg)">Vollständig gesammelt.</p>`;
+      }
+
       html += `<h2 style="margin:2rem 0 .75rem">Zuletzt gesehen</h2>`;
       for (const e of Sammlung.alle()) {
-        const ort = orte.get(e.z) || e.ort || "";
+        const ort = orte.get(e.z) || frueher.get(e.z) || e.ort || "";
+        const nurAusl = !orte.has(e.z) && frueher.has(e.z);
         html += `<article class="eintrag">
         <button class="eintrag-z" data-uebernehmen="${esc(e.z)}">${esc(e.z)}</button>
         <div class="eintrag-text">
-          <span class="eintrag-ort">${esc(ort)}</span>
+          <span class="eintrag-ort">${esc(ort)}${nurAusl ? ' <span class="marke">auslaufend</span>' : ""}</span>
           <span class="eintrag-datum">${datum(e.gesehenAm)}</span>
           ${bearbeitet === e.z
           ? `<div style="display:flex;gap:.4rem;margin-top:.3rem">

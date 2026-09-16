@@ -8,8 +8,8 @@
 } @else {
   <section class="uebersicht">
     <div class="zaehler">
-      <strong>{{ anzahl() }}</strong>
-      <span>von {{ gesamt() }} Unterscheidungszeichen</span>
+      <strong>{{ aktuellGesammelt() }}</strong>
+      <span>von {{ gesamt() }} aktuellen Unterscheidungszeichen</span>
     </div>
     <div class="balken" role="progressbar" [attr.aria-valuenow]="prozent()" aria-valuemin="0" aria-valuemax="100">
       <div class="balken__fuellung" [style.width.%]="prozent()"></div>
@@ -34,9 +34,12 @@
             <p class="fehlend">
               Noch offen:
               @for (z of l.fehlend; track z) {
-                <button type="button" class="chip" (click)="zeigeKennzeichen(z)" [attr.aria-label]="z + ' - Informationen anzeigen'">
-                  {{ z }}
-                </button>
+                <button
+                  type="button"
+                  class="chip"
+                  (click)="zeigeKennzeichen(z)"
+                  [attr.aria-label]="z + ' – Informationen anzeigen'"
+                >{{ z }}</button>
               }
             </p>
           } @else {
@@ -47,15 +50,51 @@
     }
   </section>
 
+  @if (auslaufend().gesamt) {
+    <section class="auslaufend">
+      <h2>Auslaufende Zeichen</h2>
+      <p class="auslaufend__stand">
+        {{ auslaufend().gesammelt }} von {{ auslaufend().gesamt }} gesammelt – Zeichen, die nicht
+        mehr neu vergeben werden, aber noch auf der Straße unterwegs sind.
+      </p>
+      <div class="balken balken--klein">
+        <div class="balken__fuellung" [style.width.%]="(auslaufend().gesammelt / auslaufend().gesamt) * 100"></div>
+      </div>
+      @if (auslaufend().fehlend.length) {
+        <p class="fehlend">
+          Noch offen:
+          @for (z of auslaufend().fehlend; track z) {
+            <button
+              type="button"
+              class="chip"
+              (click)="zeigeKennzeichen(z)"
+              [attr.aria-label]="z + ' – Informationen anzeigen'"
+            >{{ z }}</button>
+          }
+        </p>
+      } @else {
+        <p class="fehlend fehlend--fertig">Vollständig gesammelt.</p>
+      }
+    </section>
+  }
+
   <section class="liste">
     <h2>Zuletzt gesehen</h2>
     @for (e of eintraege(); track e.z) {
       <article class="eintrag">
-        <button type="button" class="eintrag__z" (click)="zeigeKennzeichen(e.z)" [attr.aria-label]="e.z + ' - Informationen anzeigen'">
-          {{ e.z }}
-        </button>
+        <button
+          type="button"
+          class="eintrag__z"
+          (click)="zeigeKennzeichen(e.z)"
+          [attr.aria-label]="e.z + ' – Informationen anzeigen'"
+        >{{ e.z }}</button>
         <div class="eintrag__text">
-          <span class="eintrag__ort">{{ e.ort }}</span>
+          <span class="eintrag__ort">
+            {{ e.ort }}
+            @if (e.nurAuslaufend) {
+              <span class="marke">auslaufend</span>
+            }
+          </span>
           <span class="eintrag__datum">{{ e.gesehenAm | date: 'dd.MM.yyyy' }}</span>
           @if (bearbeiteteNotiz() === e.z) {
             <div class="notiz-form">
