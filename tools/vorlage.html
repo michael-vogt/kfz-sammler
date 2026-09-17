@@ -40,7 +40,7 @@
       background: none; color: var(--gedaempft); cursor: pointer;
     }
     .reiter button[aria-selected="true"] { color: var(--akzent); border-bottom-color: var(--akzent); font-weight: 600; }
-    .zaehler { min-width: 1.4rem; padding: 0.05rem 0.4rem; border-radius: 999px; background: #eef0f3; font-size: 0.75rem; font-weight: 600; }
+    .zaehler { white-space: nowrap; min-width: 1.4rem; padding: 0.05rem 0.4rem; border-radius: 999px; background: #eef0f3; font-size: 0.75rem; font-weight: 600; }
     [hidden] { display: none !important; }
 
     /* Eingabe */
@@ -134,7 +134,7 @@
 
     /* Sammlung */
     .zaehler-gross { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.6rem; }
-    .zaehler-gross strong { font-size: 2.4rem; line-height: 1; }
+    .zaehler-gross strong { flex: 0 0 auto; font-size: 2.4rem; line-height: 1; white-space: nowrap; }
     .zaehler-gross span { color: var(--gedaempft); }
     .balken { height: 10px; border-radius: 999px; background: #eef0f3; overflow: hidden; }
     .balken.klein { height: 5px; }
