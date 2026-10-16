@@ -1,0 +1,177 @@
+:host {
+  display: block;
+  --rand: #d8dbe0;
+  --gedaempft: #5b6470;
+  --akzent: #003399;
+  --erfolg: #1a7f37;
+  --warnung: #8a6420;
+  --mono: 'Courier New', ui-monospace, monospace;
+
+  // Alles ohne Scrollen erreichbar: im Auto wird nicht gewischt.
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.laedt {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--gedaempft);
+}
+
+/* --- Anzeige ------------------------------------------------------- */
+.anzeige {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 6.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--rand);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.anzeige__code {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 13vw, 3.5rem);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+
+  &--leer { color: var(--rand); }
+  &--neu { color: var(--erfolg); }
+}
+
+.anzeige__ort {
+  font-size: 1rem;
+  color: var(--gedaempft);
+
+  &--offen { opacity: 0.6; }
+}
+
+.marke {
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+
+  &--neu { background: #e6f4ea; color: var(--erfolg); }
+  &--bekannt { background: #fbf2e2; color: var(--warnung); }
+}
+
+/* --- Tastenfeld ---------------------------------------------------- */
+.tasten {
+  display: grid;
+  // Sechs Spalten: 29 Buchstaben ergeben fünf Reihen, die letzte halb gefüllt.
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.4rem;
+}
+
+.taste {
+  // Deutlich über der 48px-Mindestgröße für Touch-Ziele.
+  min-height: 3.25rem;
+  border: 1px solid var(--rand);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: #111;
+  cursor: pointer;
+  // Verhindert den Doppeltipp-Zoom, der sonst Eingaben verschluckt.
+  touch-action: manipulation;
+
+  &:active:not(:disabled) {
+    background: var(--akzent);
+    border-color: var(--akzent);
+    color: #fff;
+  }
+
+  &:disabled {
+    // Sichtbar, aber ruhig: die Anordnung bleibt stabil, das Auge findet sich wieder.
+    border-color: transparent;
+    background: #f4f5f7;
+    color: #c3c8d0;
+    cursor: default;
+  }
+}
+
+/* --- Aktionen ------------------------------------------------------ */
+.aktionen {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.knopf {
+  min-height: 3.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--rand);
+  background: #fff;
+  font: inherit;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #111;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:disabled { opacity: 0.4; cursor: default; }
+
+  &--zurueck {
+    flex: 0 0 5rem;
+    font-size: 1.5rem;
+  }
+
+  &--eintragen {
+    flex: 1 1 auto;
+    background: var(--erfolg);
+    border-color: var(--erfolg);
+    color: #fff;
+
+    &:active:not(:disabled) { background: #166a2e; }
+  }
+
+  &--bekannt {
+    background: #fff;
+    border-color: var(--warnung);
+    color: var(--warnung);
+  }
+}
+
+/* --- Bilanz -------------------------------------------------------- */
+.bilanz {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--gedaempft);
+}
+
+.widerruf {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--rand);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  color: inherit;
+  cursor: pointer;
+
+  &:disabled { opacity: 0.4; cursor: default; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --rand: #2d3138;
+    --gedaempft: #9aa3ae;
+    --akzent: #7aa2ff;
+  }
+  .taste, .knopf, .widerruf { background: #1c1f25; color: #e8eaed; }
+  .taste:disabled { background: #191c21; color: #434a54; }
+  .knopf--eintragen { background: var(--erfolg); color: #fff; }
+}

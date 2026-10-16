@@ -1,0 +1,75 @@
+@if (!bereit() || !geladen()) {
+  <p class="laedt">Daten werden geladen &hellip;</p>
+} @else {
+  <section class="anzeige" aria-live="polite">
+    @if (eingabe()) {
+      <span class="anzeige__code">{{ eingabe() }}</span>
+      @if (istGueltig()) {
+        <span class="anzeige__ort">{{ ort() }}</span>
+      } @else {
+        <span class="anzeige__ort anzeige__ort--offen">weiter&hellip;</span>
+      }
+    } @else if (rueckmeldung(); as r) {
+      <span class="anzeige__code" [class.anzeige__code--neu]="r.art === 'neu'">{{ r.z }}</span>
+      <span class="anzeige__ort">
+        {{ r.ort }}
+        @if (r.art === 'neu') {
+          <strong class="marke marke--neu">neu</strong>
+        } @else {
+          <strong class="marke marke--bekannt">hattest du schon</strong>
+        }
+      </span>
+    } @else {
+      <span class="anzeige__code anzeige__code--leer">&ndash;</span>
+      <span class="anzeige__ort">Unterscheidungszeichen eintippen</span>
+    }
+  </section>
+
+  <div class="tasten" role="group" aria-label="Buchstaben">
+    @for (t of tasten; track t) {
+      <button
+        type="button"
+        class="taste"
+        [disabled]="!moeglich().has(t)"
+        (click)="tippe(t)"
+      >{{ t }}</button>
+    }
+  </div>
+
+  <div class="aktionen">
+    <button
+      type="button"
+      class="knopf knopf--zurueck"
+      [disabled]="!eingabe()"
+      (click)="zurueck()"
+      aria-label="Letzten Buchstaben löschen"
+    >&#9003;</button>
+
+    <button
+      type="button"
+      class="knopf knopf--eintragen"
+      [class.knopf--bekannt]="schonGesammelt()"
+      [disabled]="!istGueltig()"
+      (click)="eintragen()"
+    >
+      @if (schonGesammelt()) {
+        Schon dabei
+      } @else {
+        Eintragen
+      }
+    </button>
+  </div>
+
+  <footer class="bilanz">
+    <span>
+      @if (neueInSitzung() === 1) {
+        1 neues Zeichen in dieser Fahrt
+      } @else {
+        {{ neueInSitzung() }} neue Zeichen in dieser Fahrt
+      }
+    </span>
+    <button type="button" class="widerruf" [disabled]="!neueInSitzung()" (click)="rueckgaengig()">
+      Rückgängig
+    </button>
+  </footer>
+}

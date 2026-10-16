@@ -1,21 +1,25 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
-import { KennzeichenSucheComponent } from './kennzeichen/kennzeichen-suche/kennzeichen-suche.component';
 import { SammlungComponent } from './sammlung/sammlung.component';
 import { KarteComponent } from './karte/karte.component';
+import { BeifahrerComponent } from './beifahrer/beifahrer.component';
 import { SammlungService } from './sammlung/sammlung.service';
 import { PlattformService } from './platform.service';
 import { NavigationService } from './navigation.service';
+import { KennzeichenSucheComponent } from './kennzeichen/kennzeichen-suche/kennzeichen-suche.component';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [KennzeichenSucheComponent, SammlungComponent, KarteComponent],
+  imports: [KennzeichenSucheComponent, SammlungComponent, KarteComponent, BeifahrerComponent],
   template: `
-    <main class="huelle">
-      <header class="kopf">
-        <h1>KFZ-Kennzeichen erklärt</h1>
-        <p>Gib ein deutsches Kennzeichen ein und erfahre, wofür es steht.</p>
-      </header>
+    <main class="huelle" [class.huelle--kompakt]="ansicht() === 'beifahrer'">
+      <!-- Im Beifahrer-Modus zählt jeder Zentimeter; der Kopf wird dort nicht gelesen. -->
+      @if (ansicht() !== 'beifahrer') {
+        <header class="kopf">
+          <h1>KFZ-Kennzeichen erklärt</h1>
+          <p>Gib ein deutsches Kennzeichen ein und erfahre, wofür es steht.</p>
+        </header>
+      }
 
       <nav class="reiter" role="tablist">
         <button
@@ -48,25 +52,38 @@ import { NavigationService } from './navigation.service';
         >
           Karte
         </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="ansicht() === 'beifahrer'"
+          [class.aktiv]="ansicht() === 'beifahrer'"
+          (click)="ansicht.set('beifahrer')"
+        >
+          Beifahrer
+        </button>
       </nav>
 
       @if (ansicht() === 'suche') {
         <app-kennzeichen-suche />
       } @else if (ansicht() === 'sammlung') {
         <app-sammlung />
-      } @else {
+      } @else if (ansicht() === 'karte') {
         <app-karte />
+      } @else {
+        <app-beifahrer />
       }
 
-      <footer class="fuss">
-        <p>
-          Datengrundlage:
-          <a href="https://github.com/openpotato/kfz-kennzeichen" target="_blank" rel="noopener">
-            openpotato/kfz-kennzeichen
-          </a>
-          – Quelle der Fußnoten und Unterscheidungszeichen ist das Kraftfahrt-Bundesamt.
-        </p>
-      </footer>
+      @if (ansicht() !== 'beifahrer') {
+        <footer class="fuss">
+          <p>
+            Datengrundlage:
+            <a href="https://github.com/openpotato/kfz-kennzeichen" target="_blank" rel="noopener">
+              openpotato/kfz-kennzeichen
+            </a>
+            – Quelle der Fußnoten und Unterscheidungszeichen ist das Kraftfahrt-Bundesamt.
+          </p>
+        </footer>
+      }
     </main>
   `,
   styles: `
@@ -75,43 +92,56 @@ import { NavigationService } from './navigation.service';
       margin: 0 auto;
       padding: 2rem 1.25rem 4rem;
     }
+    /* Beifahrer-Modus: mehr Fläche für die Tasten, kein Fußbereich. */
+    .huelle--kompakt {
+      padding: 0.75rem 0.75rem 1.25rem;
+      max-width: 32rem;
+
+      .reiter { margin-bottom: 0.75rem; }
+    }
     .kopf {
       margin-bottom: 2rem;
-      h1 {
-        margin: 0 0 0.4rem;
-        font-size: clamp(1.6rem, 5vw, 2.2rem);
-      }
-      p {
-        margin: 0;
-        color: #5b6470;
-      }
+      h1 { margin: 0 0 0.4rem; font-size: clamp(1.6rem, 5vw, 2.2rem); }
+      p { margin: 0; color: #5b6470; }
     }
     .reiter {
       display: flex;
       gap: 0.25rem;
       margin-bottom: 1.75rem;
       border-bottom: 1px solid #d8dbe0;
+      /* Vier Reiter passen auf schmalen Displays nicht nebeneinander. */
+      overflow-x: auto;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar { display: none; }
 
       button {
         display: flex;
+        flex: 0 0 auto;
         align-items: center;
-        gap: 0.4rem;
-        padding: 0.6rem 1rem;
+        gap: 0.35rem;
+        /* Schmal genug, dass die vier Reiter auf 360px nebeneinander passen. */
+        padding: 0.6rem 0.7rem;
+        white-space: nowrap;
         border: 0;
         border-bottom: 2px solid transparent;
         background: transparent;
         font: inherit;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         color: #5b6470;
         cursor: pointer;
 
-        &:hover {
-          color: #003399;
-        }
-        &.aktiv {
-          color: #003399;
-          border-bottom-color: #003399;
-          font-weight: 600;
+        &:hover { color: #003399; }
+        &.aktiv { color: #003399; border-bottom-color: #003399; font-weight: 600; }
+      }
+
+      /* Auf 360px-Displays passen die vier Reiter sonst nicht nebeneinander. */
+      @media (max-width: 26rem) {
+        gap: 0.2rem;
+
+        button {
+          padding: 0.6rem 0.55rem;
+          font-size: 0.85rem;
         }
       }
     }
@@ -130,9 +160,7 @@ import { NavigationService } from './navigation.service';
       border-top: 1px solid #d8dbe0;
       font-size: 0.8rem;
       color: #5b6470;
-      a {
-        color: #003399;
-      }
+      a { color: #003399; }
     }
   `,
 })

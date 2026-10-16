@@ -27,6 +27,7 @@
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
     "papaparse": "^5.7.0",
+    "qrcode-generator": "^2.0.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

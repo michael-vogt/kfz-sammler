@@ -82,6 +82,24 @@ node tools/bauen.mjs   # liest public/data/*.json und tools/vorlage.html
 Die Logik ist eine Portierung von `kennzeichen.parser.ts` nach Vanilla-JS. Änderungen an der
 Analyse müssen daher an beiden Stellen gepflegt werden.
 
+## Beifahrer-Modus
+
+Der Reiter *Beifahrer* ist für die Eingabe während der Fahrt gedacht – durch den Beifahrer,
+nicht durch den Fahrer. Statt der Systemtastatur gibt es ein eigenes Buchstabenfeld mit 29
+großen Tasten, von denen nur die freigegeben sind, mit denen ein gültiges Unterscheidungszeichen
+weitergeht. Dadurch sind Fehleingaben praktisch ausgeschlossen und ein Eintrag braucht im
+Schnitt 3,5 Tipps.
+
+Weitere Anpassungen für diesen Zweck: Kopf- und Fußbereich entfallen, damit alles ohne Scrollen
+erreichbar ist; nach dem Eintragen zeigt die App groß an, ob das Zeichen neu war oder schon in
+der Sammlung stand; eine kurze Vibration bestätigt den Eintrag ohne Blickkontakt; „Rückgängig“
+nimmt den letzten Eintrag der Fahrt zurück, falls sich jemand verlesen hat.
+
+Eine Android-Auto-Fassung ist nicht möglich: Google lässt auf dem Fahrzeugbildschirm nur
+bestimmte App-Kategorien zu (Navigation, Points of Interest, IoT, VoIP, Wetter, Medien,
+Messaging), und die Oberfläche müsste nativ mit der Android for Cars App Library gebaut werden –
+eine WebView wird dort nicht dargestellt.
+
 ## Karte
 
 Der Reiter *Karte* zeigt alle 402 Landkreise, eingefärbt nach Sammelstand: vollständig,
