@@ -1,0 +1,89 @@
+@if (!bereit()) {
+  <p class="meldung">Sammlung wird geladen &hellip;</p>
+} @else {
+  <p class="einleitung">
+    Zum Zusammenführen zeigt einer von euch seinen Code, die andere scannt ihn – und danach
+    umgekehrt. Dabei werden beide Sammlungen vereinigt, es geht nichts verloren.
+  </p>
+
+  @if (meldung(); as m) {
+    <p class="meldung" [class.meldung--erfolg]="m.art === 'erfolg'"
+       [class.meldung--fehler]="m.art === 'fehler'" role="status">{{ m.text }}</p>
+  }
+
+  @if (scanntGerade()) {
+    <section class="sucher">
+      <video #video class="sucher__bild" playsinline muted></video>
+      <p class="sucher__hinweis">Halte die Kamera auf den QR-Code des anderen Geräts.</p>
+      <button type="button" class="knopf" (click)="scannenBeenden()">Abbrechen</button>
+    </section>
+  } @else {
+    <section class="meiner">
+      <h2>Mein Stand</h2>
+      @if (qr(); as bild) {
+        <!-- Bewusst immer dunkel auf weiss, auch im Dunkelmodus: invertierte
+             QR-Codes lesen nicht alle Scanner zuverlässig. -->
+        <svg class="qr" [attr.viewBox]="viewBox()" role="img"
+             aria-label="QR-Code mit dem eigenen Sammelstand">
+          <rect width="100%" height="100%" fill="#fff" />
+          <path [attr.d]="bild.d" fill="#000" shape-rendering="crispEdges" />
+        </svg>
+      }
+
+      <div class="meiner__aktionen">
+        <button type="button" class="knopf" (click)="kopieren()">Code kopieren</button>
+        <button type="button" class="knopf knopf--leise" (click)="codeTextUmschalten()">
+          {{ zeigeCodeText() ? 'Text ausblenden' : 'Als Text zeigen' }}
+        </button>
+      </div>
+
+      @if (zeigeCodeText()) {
+        <p class="codetext">{{ code() }}</p>
+        <p class="hinweis">
+          Diesen Text könnt ihr auch per Nachricht schicken, wenn ihr nicht nebeneinander steht.
+        </p>
+      }
+    </section>
+
+    <section class="fremder">
+      <h2>Stand übernehmen</h2>
+
+      @if (kannScannen) {
+        <button type="button" class="knopf knopf--haupt" (click)="scannenStarten()">
+          QR-Code scannen
+        </button>
+      }
+
+      <label class="feld">
+        <span class="feld__label">Oder Code einfügen</span>
+        <div class="feld__zeile">
+          <input
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            placeholder="K1-…"
+            [ngModel]="eingefuegt()"
+            (ngModelChange)="eingefuegt.set($event)"
+            (keyup.enter)="ausFeldUebernehmen()"
+          />
+          <button type="button" class="knopf" [disabled]="!eingefuegt().trim()"
+                  (click)="ausFeldUebernehmen()">Übernehmen</button>
+        </div>
+      </label>
+
+      @if (!kannScannen) {
+        <p class="hinweis">
+          Dieses Gerät kann keine QR-Codes lesen. Lasst euch den Code als Text schicken und fügt
+          ihn hier ein.
+        </p>
+      }
+    </section>
+  }
+
+  <p class="hinweis hinweis--fuss">
+    Der Code enthält nur, <em>welche</em> Zeichen gesammelt wurden – nicht wann und keine Notizen.
+    Wenn ihr auch die mitnehmen wollt, nutzt Export und Import in der Sammlung.
+  </p>
+}

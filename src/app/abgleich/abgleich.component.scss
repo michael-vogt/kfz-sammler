@@ -1,0 +1,186 @@
+:host {
+  display: block;
+  --rand: #d8dbe0;
+  --gedaempft: #5b6470;
+  --akzent: #003399;
+  --erfolg: #1a7f37;
+  --mono: 'Courier New', ui-monospace, monospace;
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.75rem;
+}
+
+.einleitung {
+  margin: 0 0 1.25rem;
+  color: var(--gedaempft);
+}
+
+.meldung {
+  margin: 0 0 1.25rem;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  background: #f4f5f7;
+  color: var(--gedaempft);
+
+  &--erfolg { background: #e6f4ea; color: var(--erfolg); }
+  &--fehler { background: #fdf0ef; color: #93261c; }
+}
+
+/* --- Eigener Stand -------------------------------------------------- */
+.meiner {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--rand);
+}
+
+.qr {
+  display: block;
+  width: 100%;
+  max-width: 17rem;
+  height: auto;
+  margin: 0 auto 1rem;
+  border-radius: 8px;
+  /* Der weisse Grund gehört zum Code: ohne Ruhezone scannen manche Geräte nicht. */
+  background: #fff;
+}
+
+.meiner__aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.codetext {
+  margin: 1rem 0 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--rand);
+  border-radius: 8px;
+  background: #f8f9fb;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  /* Der Code ist ein einziges langes Wort und muss umbrechen dürfen. */
+  overflow-wrap: anywhere;
+  color: #111;
+}
+
+/* --- Übernehmen ----------------------------------------------------- */
+.fremder {
+  margin-bottom: 1.5rem;
+}
+
+.feld {
+  display: block;
+  margin-top: 1rem;
+}
+
+.feld__label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--gedaempft);
+}
+
+.feld__zeile {
+  display: flex;
+  gap: 0.4rem;
+
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--rand);
+    border-radius: 8px;
+    background: #fff;
+    font: inherit;
+    font-family: var(--mono);
+    color: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: var(--akzent);
+      box-shadow: 0 0 0 3px rgb(0 51 153 / 0.15);
+    }
+  }
+}
+
+/* --- Sucher --------------------------------------------------------- */
+.sucher {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sucher__bild {
+  width: 100%;
+  max-width: 24rem;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: #111;
+  object-fit: cover;
+}
+
+.sucher__hinweis {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--gedaempft);
+  text-align: center;
+}
+
+/* --- Knöpfe --------------------------------------------------------- */
+.knopf {
+  padding: 0.7rem 1.1rem;
+  border: 1px solid var(--rand);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.95rem;
+  color: #111;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:hover:not(:disabled) { border-color: var(--akzent); color: var(--akzent); }
+  &:disabled { opacity: 0.45; cursor: default; }
+
+  &--haupt {
+    width: 100%;
+    padding: 0.9rem 1.1rem;
+    background: var(--akzent);
+    border-color: var(--akzent);
+    color: #fff;
+    font-weight: 600;
+
+    &:hover { background: #002b80; color: #fff; }
+  }
+
+  &--leise { color: var(--gedaempft); }
+}
+
+.hinweis {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--gedaempft);
+
+  &--fuss {
+    padding-top: 1rem;
+    border-top: 1px solid var(--rand);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --rand: #2d3138;
+    --gedaempft: #9aa3ae;
+    --akzent: #7aa2ff;
+  }
+  .meldung { background: #1c1f25; }
+  .meldung--erfolg { background: #16321f; }
+  .meldung--fehler { background: #331a18; color: #f0a9a2; }
+  .knopf, .feld__zeile input { background: #1c1f25; color: #e8eaed; }
+  .knopf--haupt { background: var(--akzent); color: #10131a; }
+  .codetext { background: #1c1f25; color: #e8eaed; }
+}

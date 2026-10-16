@@ -1,16 +1,31 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnInit,
+  effect,
+  inject,
+  viewChild,
+} from '@angular/core';
+import { KennzeichenSucheComponent } from './kennzeichen/kennzeichen-suche/kennzeichen-suche.component';
 import { SammlungComponent } from './sammlung/sammlung.component';
 import { KarteComponent } from './karte/karte.component';
 import { BeifahrerComponent } from './beifahrer/beifahrer.component';
+import { AbgleichComponent } from './abgleich/abgleich.component';
 import { SammlungService } from './sammlung/sammlung.service';
 import { PlattformService } from './platform.service';
 import { NavigationService } from './navigation.service';
-import { KennzeichenSucheComponent } from './kennzeichen/kennzeichen-suche/kennzeichen-suche.component';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [KennzeichenSucheComponent, SammlungComponent, KarteComponent, BeifahrerComponent],
+  imports: [
+    KennzeichenSucheComponent,
+    SammlungComponent,
+    KarteComponent,
+    BeifahrerComponent,
+    AbgleichComponent,
+  ],
   template: `
     <main class="huelle" [class.huelle--kompakt]="ansicht() === 'beifahrer'">
       <!-- Im Beifahrer-Modus zählt jeder Zentimeter; der Kopf wird dort nicht gelesen. -->
@@ -21,7 +36,7 @@ import { KennzeichenSucheComponent } from './kennzeichen/kennzeichen-suche/kennz
         </header>
       }
 
-      <nav class="reiter" role="tablist">
+      <nav #reiter class="reiter" role="tablist">
         <button
           type="button"
           role="tab"
@@ -61,6 +76,15 @@ import { KennzeichenSucheComponent } from './kennzeichen/kennzeichen-suche/kennz
         >
           Beifahrer
         </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="ansicht() === 'abgleich'"
+          [class.aktiv]="ansicht() === 'abgleich'"
+          (click)="ansicht.set('abgleich')"
+        >
+          Abgleich
+        </button>
       </nav>
 
       @if (ansicht() === 'suche') {
@@ -69,8 +93,10 @@ import { KennzeichenSucheComponent } from './kennzeichen/kennzeichen-suche/kennz
         <app-sammlung />
       } @else if (ansicht() === 'karte') {
         <app-karte />
-      } @else {
+      } @else if (ansicht() === 'beifahrer') {
         <app-beifahrer />
+      } @else {
+        <app-abgleich />
       }
 
       @if (ansicht() !== 'beifahrer') {
@@ -170,6 +196,17 @@ export class App implements OnInit {
   protected readonly ansicht = this.navigation.ansicht;
 
   private readonly plattform = inject(PlattformService);
+  private readonly reiterRef = viewChild<ElementRef<HTMLElement>>('reiter');
+
+  constructor() {
+    // Bei fünf Reitern passt nicht mehr alles nebeneinander; der gewählte
+    // Reiter soll nach dem Wechsel trotzdem ganz sichtbar sein.
+    effect(() => {
+      this.ansicht();
+      const aktiv = this.reiterRef()?.nativeElement.querySelector('.aktiv');
+      aktiv?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    });
+  }
 
   ngOnInit(): void {
     void this.plattform.initialisieren();

@@ -82,6 +82,42 @@ node tools/bauen.mjs   # liest public/data/*.json und tools/vorlage.html
 Die Logik ist eine Portierung von `kennzeichen.parser.ts` nach Vanilla-JS. Änderungen an der
 Analyse müssen daher an beiden Stellen gepflegt werden.
 
+## Zu zweit sammeln
+
+Der Reiter *Abgleich* führt zwei Sammlungen zusammen: Ein Gerät zeigt einen QR-Code, das andere
+scannt ihn und bildet die Vereinigung beider Sammlungen; danach umgekehrt, damit beide
+denselben Stand haben. Es wird nur hinzugefügt, nie etwas entfernt, und ein wiederholter
+Abgleich ändert nichts mehr.
+
+### Das Codeformat
+
+`K1-<PRÜFSUMME>-<BITFELD>`, zum Beispiel `K1-AZIDTGC-AHQYKEZICFWQDSXACEBSEMAUGEA…`
+
+Jedes sammelbare Zeichen belegt ein Bit. Bei 769 Zeichen sind das 97 Byte, als Base32 rund 156
+Zeichen – zusammen 167. Der Code besteht nur aus Großbuchstaben, Ziffern und Bindestrich, damit
+der QR-Code den kompakteren alphanumerischen Modus nutzen kann: Das ergibt Version 7 statt 8,
+auch bei vollständig gefüllter Sammlung.
+
+Zwei Entscheidungen im Codec sind nicht beliebig:
+
+- **Die Sortierung der Zeichenliste nutzt kein `localeCompare`.** Dessen Ergebnis hängt von der
+  ICU-Version des Geräts ab; schon eine abweichende Einsortierung der Umlaute würde alle
+  Bitpositionen verschieben. Die einfache Sortierung nach Code-Einheiten ist überall gleich.
+- **Die Prüfsumme (FNV-1a über die Zeichenliste) ist Pflicht, nicht Zierde.** Hätten zwei Geräte
+  unterschiedliche Datenstände, wären die Bitpositionen verschoben und der Abgleich würde
+  stillschweigend die falschen Kennzeichen eintragen. Stimmt die Prüfsumme nicht, verweigert die
+  App den Abgleich mit einer erklärenden Meldung.
+
+### Grenzen
+
+Der Code trägt nur, *welche* Zeichen gesammelt wurden – nicht wann, und keine Notizen. Dafür
+bleiben Export und Import als JSON in der Sammlung der vollständige Weg. Übernommene Zeichen
+bekommen deshalb das Datum des Abgleichs.
+
+Das Scannen läuft über die `BarcodeDetector`-Schnittstelle der WebView, also ohne zusätzliches
+Plugin. Fehlt sie – etwa in Firefox oder Safari – blendet die App den Scan-Knopf aus; der Code
+lässt sich dann als Text einfügen oder per Nachricht schicken.
+
 ## Beifahrer-Modus
 
 Der Reiter *Beifahrer* ist für die Eingabe während der Fahrt gedacht – durch den Beifahrer,

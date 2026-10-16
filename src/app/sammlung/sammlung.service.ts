@@ -145,18 +145,41 @@ export class SammlungService {
   }
 
   /**
-   * Gibt die Sammlung als JSON-Datei aus - im Browser als Download,
+   * Nimmt alle übergebenen Zeichen auf, ohne vorhandene zu verändern oder zu
+   * entfernen – die Mengenvereinigung beider Sammlungen.
+   *
+   * Übernommene Zeichen bekommen das heutige Datum, weil ein Sammelcode nur
+   * trägt, *welche* Zeichen gesehen wurden, nicht wann.
+   *
+   * Gibt die Zahl der neu hinzugekommenen Zeichen zurück.
+   */
+  vereinigen(zeichen: Iterable<string>, orte?: ReadonlyMap<string, string>): number {
+    const jetzt = new Date().toISOString();
+    let neue = 0;
+
+    this.sichtungen.update((alt) => {
+      const neuerStand = { ...alt };
+      for (const z of zeichen) {
+        if (neuerStand[z]) continue;
+        neuerStand[z] = { z, gesehenAm: jetzt, ort: orte?.get(z) ?? null, notiz: null };
+        neue++;
+      }
+      return neuerStand;
+    });
+
+    if (neue) this.persistieren();
+    return neue;
+  }
+
+  /**
+   * Gibt die Sammlung als JSON-Datei aus – im Browser als Download,
    * unter Android über das Teilen-Menü.
    * Gibt false zurück, wenn der Nutzer abgebrochen hat.
    */
   async exportieren(): Promise<boolean> {
     const ausgabe = await this.ausgabePromise;
     const dateiname = `kfz-sammlung-${new Date().toISOString().slice(0, 10)}.json`;
-    return ausgabe.bereitstellen(
-      dateiname,
-      JSON.stringify(this.alle(), null, 2),
-      'KFZ-Sammlung',
-    );
+    return ausgabe.bereitstellen(dateiname, JSON.stringify(this.alle(), null, 2), 'KFZ-Sammlung');
   }
 
   /**

@@ -24,9 +24,10 @@ export PATH="$PATH:$ANDROID_HOME/platform-tools"
 ## Einrichtung (einmalig)
 
 ```bash
-npm install @capacitor/core @capacitor/cli
+npm install @capacitor/core @capacitor/cli @capacitor/android
 npm install @capacitor/app @capacitor/status-bar @capacitor/splash-screen @capacitor/preferences
 npm install @capacitor/filesystem @capacitor/share
+npm install qrcode-generator
 npx cap init "KFZ-Kennzeichen" de.example.kfzkennzeichen --web-dir dist/kfz-kennzeichen/browser
 ```
 
@@ -137,6 +138,28 @@ Dateien-App. Welche Variante greift, entscheidet `ausgabeErzeugen()` in
 
 Der Import über `<input type="file">` funktioniert dagegen unverändert – die WebView reicht
 das an den Android-Dateiwähler weiter.
+
+## Kamera für den Abgleich
+
+Der QR-Abgleich liest die Kamera über `getUserMedia` und `BarcodeDetector` der WebView – also
+ohne zusätzliches Plugin. Damit Android den Zugriff erlaubt, muss die Berechtigung in
+`android/app/src/main/AndroidManifest.xml` innerhalb von `<manifest>` deklariert sein:
+
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-feature android:name="android.hardware.camera" android:required="false" />
+```
+
+`android:required="false"` sorgt dafür, dass die App auch auf Geräten ohne Kamera installierbar
+bleibt – das Einfügen des Codes als Text funktioniert dort weiterhin.
+
+Die Laufzeitabfrage beim Nutzer übernimmt Capacitors WebView selbst, sobald die Seite die Kamera
+anfordert. Falls das auf deinem Gerät nicht greift oder `BarcodeDetector` fehlt, ist
+[`@capacitor-mlkit/barcode-scanning`](https://github.com/capawesome-team/capacitor-mlkit) die
+native Alternative; dann wäre in `src/app/abgleich/kamerascanner.ts` eine zweite Implementierung
+einzuhängen, analog zu `speicher.ts` und `ausgabe.ts`. Ich konnte den Kamerazugriff hier nicht
+auf einem echten Gerät prüfen – falls der Scan-Knopf nichts tut, lohnt zuerst ein Blick in den
+Logcat.
 
 ## Bekannte Stolpersteine
 
